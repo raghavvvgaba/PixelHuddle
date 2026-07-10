@@ -14,12 +14,14 @@ const socketHandler = require('./socket/socketHandler');
 
 const app = express();
 const server = http.createServer(app);
+const allowAllOrigins = process.env.ALLOW_ALL_ORIGINS === "true" || process.env.CORS_ORIGINS === "*";
 const allowedOrigins = (process.env.CORS_ORIGINS || process.env.CORS_ORIGIN || "http://localhost:5173")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
 
 const isOriginAllowed = (origin) => {
+  if (allowAllOrigins) return true;
   if (!origin) return true;
 
   return allowedOrigins.some((allowedOrigin) => {
@@ -51,8 +53,14 @@ const corsOptions = {
   methods: ["GET", "POST", "OPTIONS"],
 };
 
+const expressCorsOrigin = allowAllOrigins ? true : corsOptions.origin;
+const socketCorsOrigin = allowAllOrigins ? "*" : corsOptions.origin;
+
 const io = new Server(server, {
-  cors: corsOptions,
+  cors: {
+    ...corsOptions,
+    origin: socketCorsOrigin,
+  },
 });
 
 // Database connection
@@ -60,7 +68,10 @@ connectDB();
 
 // Middleware
 app.set("trust proxy", 1);
-app.use(cors(corsOptions));
+app.use(cors({
+  ...corsOptions,
+  origin: expressCorsOrigin,
+}));
 app.use(express.json());
 app.use(noSQLInjectionProtection);
 app.use(inputSanitization);
@@ -85,6 +96,6 @@ app.use(errorHandler);
 socketHandler(io);
 
 const PORT = process.env.PORT || 4000;
-server.listen(PORT, () => {
-  console.log(`[SERVER] Server running on port ${PORT}`);
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`[SERVER] Server running on port ${PORT} (0.0.0.0)`);
 });
