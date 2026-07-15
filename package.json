@@ -1,0 +1,13 @@
+{
+  "name": "gathermeet",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently --kill-others --names server,client --prefix-colors blue,green \"npm run dev --prefix Server\" \"npm run dev --prefix Client\"",
+    "dev:server": "npm run dev --prefix Server",
+    "dev:client": "npm run dev --prefix Client"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
