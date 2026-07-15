@@ -5,7 +5,10 @@
   "scripts": {
     "dev": "concurrently --kill-others --names server,client --prefix-colors blue,green \"npm run dev --prefix Server\" \"npm run dev --prefix Client\"",
     "dev:server": "npm run dev --prefix Server",
-    "dev:client": "npm run dev --prefix Client"
+    "dev:client": "npm run dev --prefix Client",
+    "build": "npm run build --prefix Server && npm run build --prefix Client",
+    "typecheck": "npm run typecheck --prefix Server && npm run typecheck --prefix Client",
+    "test": "npm run test --prefix Server"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

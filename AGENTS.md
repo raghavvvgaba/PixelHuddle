@@ -16,7 +16,7 @@ The experience should feel game-like while remaining approachable to build, unde
 
 Use the following stack:
 
-- JavaScript and JSX
+- TypeScript and TSX with strict type checking
 - React 19
 - Vite
 - React Router
@@ -103,6 +103,8 @@ Reuse existing assets when appropriate. When adding assets, keep related files g
 Use local React state for temporary component and UI state. Use React Context for shared client concerns such as authentication and theme state, and use `localStorage` only for browser-persisted values such as authentication data and stable local identity.
 
 Keep Socket.IO presence and WebRTC state inside the relevant hooks. Keep spatial world state and rendering concerns inside Phaser. Conversation membership is server-authoritative; clients must not independently choose or override spatial conversation peers.
+
+Keep shared room, player, Socket.IO, and WebRTC signaling contracts in `Shared/realtime.ts`. Update the shared contract whenever a realtime payload changes so the client and server remain aligned.
 
 MongoDB through Mongoose currently stores persistent user account data. Socket.IO room presence, player positions, conversation membership, and private-zone state are stored in server memory and are lost when the server restarts.
 
