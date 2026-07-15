@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import socket from "../socket";
 
-export default function useRoomPresence(roomId) {
+export default function useRoomPresence(roomId, identity) {
   const [selfSocketId, setSelfSocketId] = useState(socket.id || null);
   const [participants, setParticipants] = useState([]);
   const [roomRevision, setRoomRevision] = useState(-1);
@@ -10,13 +10,17 @@ export default function useRoomPresence(roomId) {
   const leftRoomRef = useRef(false);
   const remoteMoveListenersRef = useRef(new Set());
 
-  const emitJoin = (targetRoomId) => {
+  const emitJoin = useCallback((targetRoomId) => {
     if (!targetRoomId) return;
 
     leftRoomRef.current = false;
-    socket.emit("join-room", targetRoomId);
+    socket.emit("join-room", {
+      roomId: targetRoomId,
+      userId: identity?.userId,
+      displayName: identity?.displayName,
+    });
     socket.emit("request-room-state", targetRoomId);
-  };
+  }, [identity?.displayName, identity?.userId]);
 
   const emitLeave = (targetRoomId) => {
     if (!targetRoomId || leftRoomRef.current) return;
@@ -78,7 +82,7 @@ export default function useRoomPresence(roomId) {
       socket.off("player-moved", handlePlayerMoved);
       emitLeave(roomId);
     };
-  }, [roomId]);
+  }, [emitJoin, roomId]);
 
   useEffect(() => {
     if (!roomId) return undefined;

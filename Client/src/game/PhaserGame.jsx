@@ -10,6 +10,7 @@ export default function PhaserGame({
   players,
   onLocalPlayerMove,
   subscribeToRemoteMoves,
+  conversationPeerIds,
 }) {
   const containerRef = useRef(null);
   const gameRef = useRef(null);
@@ -27,6 +28,10 @@ export default function PhaserGame({
       players,
     };
   }, [players, selfSocketId]);
+
+  useEffect(() => {
+    sceneRef.current?.setConversationPeers(conversationPeerIds || []);
+  }, [conversationPeerIds]);
 
   useEffect(() => {
     onLocalPlayerMoveRef.current = onLocalPlayerMove;

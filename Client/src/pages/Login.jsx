@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import AuthShell from "../components/AuthShell";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -29,7 +29,7 @@ const Login = () => {
 
   return (
     <AuthShell title="Welcome Back" subtitle="Sign in to access your virtual rooms">
-      <motion.form
+      <Motion.form
         onSubmit={handleLogin}
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -88,18 +88,18 @@ const Login = () => {
         {error && <p id="login-error" role="alert" className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-md px-3 py-2">{error}</p>}
 
         <div className="pt-2">
-          <motion.button
+          <Motion.button
             type="submit"
             className="w-full btn-base btn-primary"
             whileHover={{ scale: 1.015 }}
             whileTap={{ scale: 0.96 }}
           >
             Sign In
-          </motion.button>
+          </Motion.button>
         </div>
 
         <p className="text-xs text-theme-secondary text-center pt-2">Don't have an account? <Link to="/signup" className="text-accent-gradient hover:opacity-80">Create one</Link></p>
-      </motion.form>
+      </Motion.form>
     </AuthShell>
   );
 };

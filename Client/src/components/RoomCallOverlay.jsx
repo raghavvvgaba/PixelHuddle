@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion as Motion } from "framer-motion";
 import {
   FaExclamationTriangle,
   FaMicrophone,
@@ -21,7 +21,7 @@ const attachStream = async (element, stream, setNeedsManualPlayback) => {
   try {
     await element.play();
     setNeedsManualPlayback(false);
-  } catch (error) {
+  } catch {
     setNeedsManualPlayback(true);
   }
 };
@@ -97,7 +97,7 @@ export default function RoomCallOverlay({
     <>
       <AnimatePresence>
         {callError ? (
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
@@ -117,13 +117,13 @@ export default function RoomCallOverlay({
                 Dismiss
               </button>
             </div>
-          </motion.div>
+          </Motion.div>
         ) : null}
       </AnimatePresence>
 
       <div className="pointer-events-none fixed inset-0 z-[1050]">
         <div className="pointer-events-auto absolute bottom-4 left-4 right-4 md:left-auto md:w-[26rem]">
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25 }}
@@ -251,18 +251,18 @@ export default function RoomCallOverlay({
                 ) : null}
               </div>
             </div>
-          </motion.div>
+          </Motion.div>
         </div>
 
         <AnimatePresence>
           {incomingCall ? (
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="pointer-events-auto absolute inset-0 flex items-center justify-center bg-black/35 px-4 backdrop-blur-sm"
             >
-              <motion.div
+              <Motion.div
                 initial={{ opacity: 0, y: 24, scale: 0.96 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 16, scale: 0.98 }}
@@ -296,8 +296,8 @@ export default function RoomCallOverlay({
                     <span>Decline</span>
                   </button>
                 </div>
-              </motion.div>
-            </motion.div>
+              </Motion.div>
+            </Motion.div>
           ) : null}
         </AnimatePresence>
       </div>

@@ -44,7 +44,7 @@ const PasswordStrengthMeter = ({ password, onStrengthChange }) => {
     }
 
     // Special character
-    if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    if (/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
       score += 1;
     } else {
       newFeedback.push('One special character');

@@ -1,20 +1,24 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 import { FaCopy, FaSignOutAlt } from 'react-icons/fa';
-import RoomCallOverlay from '../components/RoomCallOverlay';
+import SpatialConversationDock from '../components/SpatialConversationDock';
+import { useAuth } from '../contexts/AuthContext';
 import PhaserGame from '../game/PhaserGame';
-import useRoomCall from '../hooks/useRoomCall';
 import useRoomPresence from '../hooks/useRoomPresence';
+import useSpatialConversation from '../hooks/useSpatialConversation';
 import useSocketStatus from '../hooks/useSocketStatus';
+import { getRoomIdentity } from '../utils/identity';
 
 const Room = () => {
   const navigate = useNavigate();
   const { roomId } = useParams();
+  const { user } = useAuth();
   const [copied, setCopied] = useState(false);
+  const identity = useMemo(() => getRoomIdentity(user), [user]);
   const socketStatus = useSocketStatus();
-  const roomPresence = useRoomPresence(roomId);
-  const roomCall = useRoomCall({
+  const roomPresence = useRoomPresence(roomId, identity);
+  const spatialConversation = useSpatialConversation({
     roomId,
     selfSocketId: roomPresence.selfSocketId,
     participants: roomPresence.participants,
@@ -71,7 +75,7 @@ const Room = () => {
       </div>
 
       <div className="fixed top-4 right-4 z-[1000]">
-        <motion.button
+        <Motion.button
           onClick={handleQuitRoom}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -81,7 +85,7 @@ const Room = () => {
           type="button"
         >
           <FaSignOutAlt size={16} />
-        </motion.button>
+        </Motion.button>
       </div>
 
       <PhaserGame
@@ -89,8 +93,11 @@ const Room = () => {
         players={roomPresence.participants}
         onLocalPlayerMove={roomPresence.emitLocalPlayerMove}
         subscribeToRemoteMoves={roomPresence.subscribeToRemoteMoves}
+        conversationPeerIds={spatialConversation.peers.map((peer) => peer.socketId)}
       />
-      {socketStatus.isConnected ? <RoomCallOverlay {...roomCall} /> : null}
+      {socketStatus.isConnected ? (
+        <SpatialConversationDock identity={identity} {...spatialConversation} />
+      ) : null}
 
       {!socketStatus.isConnected ? (
         <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-black/45 px-4 backdrop-blur-sm">

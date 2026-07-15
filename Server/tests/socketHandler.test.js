@@ -6,7 +6,15 @@ const {
   normalizeRoomId,
   resetPeerRelationship,
   validateCallParticipants,
+  buildConversationPeerMap,
+  normalizeJoinPayload,
+  sanitizeDisplayName,
 } = socketHandler.__testing;
+const {
+  MAX_SPATIAL_PEERS,
+  PROXIMITY_ENTER_DISTANCE,
+  PROXIMITY_EXIT_DISTANCE,
+} = require("../socket/spatialConfig");
 
 const createSocket = (id, roomId) => ({
   id,
@@ -98,6 +106,81 @@ describe("socketHandler call helpers", () => {
         fromSocketId: "caller",
         reason: "quit-room",
       },
+    });
+  });
+});
+
+describe("spatial conversation helpers", () => {
+  const createPlayer = (socketId, x, y, overrides = {}) => ({
+    socketId,
+    x,
+    y,
+    deafened: false,
+    ...overrides,
+  });
+
+  test("normalizes stable identity supplied during room join", () => {
+    expect(
+      normalizeJoinPayload({
+        roomId: "  Demo-Room ",
+        userId: "guest-123",
+        displayName: "  Sunny    Otter  ",
+      })
+    ).toEqual({
+      roomId: "demo-room",
+      userId: "guest-123",
+      displayName: "Sunny Otter",
+    });
+    expect(sanitizeDisplayName(" ")).toBe("Guest");
+  });
+
+  test("connects players inside the entry radius", () => {
+    const players = new Map([
+      ["a", createPlayer("a", 700, 700)],
+      ["b", createPlayer("b", 700 + PROXIMITY_ENTER_DISTANCE - 1, 700)],
+    ]);
+
+    const peers = buildConversationPeerMap("room", players);
+    expect(peers.get("a").has("b")).toBe(true);
+    expect(peers.get("b").has("a")).toBe(true);
+  });
+
+  test("uses an exit radius to prevent boundary flicker", () => {
+    const players = new Map([
+      ["a", createPlayer("a", 700, 700)],
+      ["b", createPlayer("b", 700 + PROXIMITY_EXIT_DISTANCE - 1, 700)],
+    ]);
+    const previousPeers = new Map([
+      ["a", new Set(["b"])],
+      ["b", new Set(["a"])],
+    ]);
+
+    expect(buildConversationPeerMap("room", players, previousPeers).get("a").has("b")).toBe(true);
+    players.get("b").x = 700 + PROXIMITY_EXIT_DISTANCE + 1;
+    expect(buildConversationPeerMap("room", players, previousPeers).get("a").has("b")).toBe(false);
+  });
+
+  test("isolates a private-zone occupant from people outside", () => {
+    const players = new Map([
+      ["inside", createPlayer("inside", 80, 430)],
+      ["outside", createPlayer("outside", 80, 400)],
+    ]);
+
+    const peers = buildConversationPeerMap("room", players);
+    expect(peers.get("inside").has("outside")).toBe(false);
+  });
+
+  test("bounds the prototype mesh to three peers per participant", () => {
+    const players = new Map(
+      Array.from({ length: 6 }, (_, index) => [
+        `player-${index}`,
+        createPlayer(`player-${index}`, 700 + index, 700),
+      ])
+    );
+
+    const peers = buildConversationPeerMap("room", players);
+    peers.forEach((peerIds) => {
+      expect(peerIds.size).toBeLessThanOrEqual(MAX_SPATIAL_PEERS);
     });
   });
 });

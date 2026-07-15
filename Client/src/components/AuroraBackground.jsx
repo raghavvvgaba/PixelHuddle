@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 
 const blobs = [
   { className: '', style: { top: '-10%', left: '-5%' } },
@@ -11,7 +11,7 @@ const AuroraBackground = () => {
   return (
     <div className="aurora-layer" aria-hidden="true">
       {blobs.map((b, i) => (
-        <motion.div
+        <Motion.div
           key={i}
             className={`aurora-blob ${b.className}`}
             style={b.style}

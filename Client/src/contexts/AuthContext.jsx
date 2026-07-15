@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
   const initialState = getInitialAuthState();
   const [user, setUser] = useState(initialState.user);
   const [token, setToken] = useState(initialState.token);
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
 
   // Set up axios interceptor for authenticated requests
   useEffect(() => {

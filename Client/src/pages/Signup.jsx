@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import AuthShell from "../components/AuthShell";
 import PasswordStrengthMeter from "../components/PasswordStrengthMeter";
 import { useAuth } from "../contexts/AuthContext";
@@ -9,7 +9,7 @@ const Signup = () => {
   const [form, setForm] = useState({ username: "", email: "", password: "" });
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState(0);
+  const [, setPasswordStrength] = useState(0);
   const navigate = useNavigate();
   const { signup } = useAuth();
 
@@ -31,7 +31,7 @@ const Signup = () => {
 
   return (
     <AuthShell title="Create Account" subtitle="Set up your profile and enter shared spaces">
-      <motion.form
+      <Motion.form
         onSubmit={handleSignup}
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -111,18 +111,18 @@ const Signup = () => {
         {error && <p id="signup-error" role="alert" className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-md px-3 py-2">{error}</p>}
 
         <div className="pt-2">
-          <motion.button
+          <Motion.button
             type="submit"
             className="w-full btn-base btn-primary"
             whileHover={{ scale: 1.015 }}
             whileTap={{ scale: 0.96 }}
           >
             Sign Up
-          </motion.button>
+          </Motion.button>
         </div>
 
         <p className="text-xs text-theme-secondary text-center pt-2">Already have an account? <Link to="/login" className="text-accent-gradient hover:opacity-80">Sign in</Link></p>
-      </motion.form>
+      </Motion.form>
     </AuthShell>
   );
 };

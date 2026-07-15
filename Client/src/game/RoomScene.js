@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { PRIVATE_ZONES, PROXIMITY_ENTER_DISTANCE } from './spatialConfig';
 
 // Tile frame indices from the Kenney Roguelike Modern City sprite sheet
 // Sprite sheet: 37 cols x 28 rows = 1036 tiles, each 16x16px
@@ -384,6 +385,7 @@ export default class RoomScene extends Phaser.Scene {
     this.onSceneReady = null;
     this.isReady = false;
     this.lastSentState = { x: null, y: null, flipX: false, time: 0 };
+    this.conversationPeerIds = new Set();
   }
 
   preload() {
@@ -412,6 +414,24 @@ export default class RoomScene extends Phaser.Scene {
           .setScale(SCALE);
       }
     }
+
+    PRIVATE_ZONES.forEach((zone) => {
+      const fill = this.add
+        .rectangle(zone.x, zone.y, zone.width, zone.height, zone.color, 0.1)
+        .setOrigin(0)
+        .setDepth(2);
+      fill.setStrokeStyle(2, zone.color, 0.7);
+
+      this.add
+        .text(zone.x + 10, zone.y + 8, `PRIVATE · ${zone.name.toUpperCase()}`, {
+          fontFamily: 'monospace',
+          fontSize: '10px',
+          color: '#f8fafc',
+          backgroundColor: '#111827cc',
+          padding: { x: 7, y: 4 },
+        })
+        .setDepth(3);
+    });
 
     // Layer 2: Object tiles (collision bodies)
     this.obstacles = this.physics.add.staticGroup();
@@ -448,6 +468,8 @@ export default class RoomScene extends Phaser.Scene {
     this.player.setScale(charScale);
     this.player.setDepth(10);
     this.player.setCollideWorldBounds(true);
+    this.selfLabel = this.createPlayerLabel(this.player, "You", true);
+    this.selfAura = this.createConversationAura(this.player);
 
     // Shrink the collision body to a small box at the character's feet
     this.player.body.setSize(
@@ -485,6 +507,8 @@ export default class RoomScene extends Phaser.Scene {
       this.isReady = false;
       this.remotePlayers.forEach((remotePlayer) => {
         remotePlayer.sprite.destroy();
+        remotePlayer.label.destroy();
+        remotePlayer.aura.destroy();
       });
       this.remotePlayers.clear();
     });
@@ -536,7 +560,14 @@ export default class RoomScene extends Phaser.Scene {
         remotePlayer.sprite.anims.stop();
         remotePlayer.sprite.setTexture('char_walk0');
       }
+
+
+      remotePlayer.label.setPosition(remotePlayer.sprite.x, remotePlayer.sprite.y - 35);
+      remotePlayer.aura.setPosition(remotePlayer.sprite.x, remotePlayer.sprite.y + 2);
     });
+
+    this.selfLabel?.setPosition(this.player.x, this.player.y - 35);
+    this.selfAura?.setPosition(this.player.x, this.player.y + 2);
 
     this.emitLocalPlayerState();
   }
@@ -564,10 +595,49 @@ export default class RoomScene extends Phaser.Scene {
     sprite.setDepth(10);
     sprite.setFlipX(Boolean(player.flipX));
 
+    const label = this.createPlayerLabel(sprite, player.displayName || "Guest");
+    const aura = this.createConversationAura(sprite);
+
     this.remotePlayers.set(player.socketId, {
       sprite,
+      label,
+      aura,
       targetX: player.x,
       targetY: player.y,
+    });
+  }
+
+  createPlayerLabel(sprite, displayName, isSelf = false) {
+    return this.add
+      .text(sprite.x, sprite.y - 35, isSelf ? `${displayName} · YOU` : displayName, {
+        fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+        fontSize: '11px',
+        fontStyle: '600',
+        color: '#ffffff',
+        backgroundColor: isSelf ? '#0f766ecc' : '#111827d9',
+        padding: { x: 7, y: 4 },
+      })
+      .setOrigin(0.5, 1)
+      .setDepth(30);
+  }
+
+  createConversationAura(sprite) {
+    return this.add
+      .circle(sprite.x, sprite.y + 2, PROXIMITY_ENTER_DISTANCE, 0x67e8f9, 0.035)
+      .setStrokeStyle(1, 0x67e8f9, 0.16)
+      .setDepth(4)
+      .setVisible(false);
+  }
+
+  setConversationPeers(peerIds = []) {
+    this.conversationPeerIds = new Set(peerIds);
+    this.selfAura?.setVisible(this.conversationPeerIds.size > 0);
+    this.remotePlayers.forEach((remotePlayer, socketId) => {
+      const isConnected = this.conversationPeerIds.has(socketId);
+      remotePlayer.aura.setVisible(isConnected);
+      remotePlayer.label.setStyle({
+        backgroundColor: isConnected ? '#0e7490e6' : '#111827d9',
+      });
     });
   }
 
@@ -582,6 +652,7 @@ export default class RoomScene extends Phaser.Scene {
       if (player.socketId === this.selfSocketId) {
         this.player.setPosition(player.x, player.y);
         this.player.setFlipX(Boolean(player.flipX));
+        this.selfLabel?.setText(`${player.displayName || "Guest"} · YOU`);
         this.lastSentState = {
           x: player.x,
           y: player.y,
@@ -605,12 +676,15 @@ export default class RoomScene extends Phaser.Scene {
       remotePlayer.targetX = player.x;
       remotePlayer.targetY = player.y;
       remotePlayer.sprite.setFlipX(Boolean(player.flipX));
+      remotePlayer.label.setText(player.displayName || "Guest");
     });
 
     this.remotePlayers.forEach((remotePlayer, socketId) => {
       if (activeRemoteIds.has(socketId)) return;
 
       remotePlayer.sprite.destroy();
+      remotePlayer.label.destroy();
+      remotePlayer.aura.destroy();
       this.remotePlayers.delete(socketId);
     });
   }

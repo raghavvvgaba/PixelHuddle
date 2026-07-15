@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import { FaArrowRight, FaPlus } from "react-icons/fa";
 import AuroraBackground from "../components/AuroraBackground";
 import AnimatedGrid from "../components/AnimatedGrid";
@@ -12,7 +12,6 @@ const Dashboard = () => {
   const [roomIdInput, setRoomIdInput] = useState("");
   const {
     backendUrl,
-    connectionState,
     connectionError,
     isConnected,
     isConnecting,
@@ -45,7 +44,7 @@ const Dashboard = () => {
       {/* Main Content */}
       <main className="relative z-10 px-4 py-8">
         <div className="max-w-5xl mx-auto">
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -60,9 +59,9 @@ const Dashboard = () => {
             <p className="text-theme-secondary max-w-2xl mx-auto">
               Use a room ID to enter the same shared space together. No login required for the demo.
             </p>
-          </motion.div>
+          </Motion.div>
 
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
@@ -95,10 +94,10 @@ const Dashboard = () => {
                 Server: {backendUrl}
               </p>
             </div>
-          </motion.div>
+          </Motion.div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <motion.button
+            <Motion.button
               onClick={handleCreateRoom}
               disabled={!isConnected}
               initial={{ opacity: 0, y: 20 }}
@@ -124,9 +123,9 @@ const Dashboard = () => {
                   <span>Create Room</span>
                 </div>
               </div>
-            </motion.button>
+            </Motion.button>
 
-            <motion.form
+            <Motion.form
               onSubmit={handleJoinRoom}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -168,7 +167,7 @@ const Dashboard = () => {
                   <FaArrowRight size={14} />
                 </button>
               </div>
-            </motion.form>
+            </Motion.form>
           </div>
         </div>
       </main>

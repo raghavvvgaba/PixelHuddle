@@ -1,5 +1,5 @@
 import React from "react";
-import { motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import { FaUsers, FaEllipsisV } from "react-icons/fa";
 
 const SpaceCard = ({ space, delay = 0 }) => {
@@ -9,7 +9,7 @@ const SpaceCard = ({ space, delay = 0 }) => {
   };
 
   return (
-    <motion.div
+    <Motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay }}
@@ -66,7 +66,7 @@ const SpaceCard = ({ space, delay = 0 }) => {
           )}
         </div>
       </div>
-    </motion.div>
+    </Motion.div>
   );
 };
 

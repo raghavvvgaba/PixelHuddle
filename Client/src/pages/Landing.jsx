@@ -1,7 +1,7 @@
 // Landing.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import { FaUsers, FaSyncAlt, FaUserEdit, FaMobileAlt } from "react-icons/fa";
 import AuroraBackground from "../components/AuroraBackground";
 import AnimatedGrid from "../components/AnimatedGrid";
@@ -61,7 +61,7 @@ function GlowingParticles({ count = 90, className = "" }) {
   return (
     <>
       {particles.map((p, i) => (
-        <motion.span
+        <Motion.span
           key={i}
           className={`absolute rounded-full opacity-80 ${className}`}
           style={{ 
@@ -102,7 +102,7 @@ const Landing = () => {
   <section className="relative pt-32 md:pt-40 pb-44 md:pb-56 content-wrapper">
         <div className="grid-overlay-hero"></div>
         <div className="max-w-3xl mx-auto text-center relative">
-          <motion.h1
+          <Motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
@@ -110,16 +110,16 @@ const Landing = () => {
           >
             Metameet: Connect, Collaborate, Simply.<br className="hidden md:block" />
             <span className="text-accent-gradient">The 2D Metaverse for All.</span>
-          </motion.h1>
-          <motion.p
+          </Motion.h1>
+          <Motion.p
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.75, delay: .15, ease: 'easeOut' }}
             className="text-lg md:text-xl text-theme-secondary max-w-2xl mx-auto mb-10"
           >
             Build meaningful interactions inside lightweight, expressive virtual rooms. Real-time movement, identity, and collaboration—accessible on any device.
-          </motion.p>
-          <motion.div
+          </Motion.p>
+          <Motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: .25, duration: .7 }}
@@ -131,7 +131,7 @@ const Landing = () => {
             >
               Open Demo
             </button>
-          </motion.div>
+          </Motion.div>
         </div>
 
       </section>
