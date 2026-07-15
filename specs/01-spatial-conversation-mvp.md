@@ -49,8 +49,8 @@ This is a deliberate prototype boundary, not the production architecture. Before
 
 Two private areas are currently defined in both the server and Phaser map configuration:
 
-- Garden Nook
-- Sunset Table
+- Focus Room
+- Boardroom
 
 The duplicated configuration is acceptable for this slice but must move to a shared, data-driven map schema during the persistent-space or map-tooling work.
 
@@ -74,8 +74,8 @@ Public STUN defaults are provided. A real TURN service is required before cross-
 5. Walk two avatars together and confirm that media connects automatically.
 6. Bring the other two avatars into range and confirm that the group expands without a call dialog.
 7. Move one avatar beyond the exit radius and confirm that it disconnects without affecting the remaining group.
-8. Move two avatars into Garden Nook and confirm that nearby outsiders cannot hear them.
-9. Lock Garden Nook, attempt to enter with another avatar, and confirm that the newcomer is excluded.
+8. Move two avatars into Focus Room and confirm that nearby outsiders cannot hear them.
+9. Lock Focus Room, attempt to enter with another avatar, and confirm that the newcomer is excluded.
 10. Exercise mute, camera, quiet mode, and screen sharing.
 11. Refresh or close a participant and confirm that no ghost participant remains.
 

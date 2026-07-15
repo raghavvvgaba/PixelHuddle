@@ -1,5 +1,5 @@
-const WORLD_WIDTH = 40 * 32;
-const WORLD_HEIGHT = 30 * 32;
+const WORLD_WIDTH = 32 * 32;
+const WORLD_HEIGHT = 22 * 32;
 
 const PROXIMITY_ENTER_DISTANCE = 176;
 const PROXIMITY_EXIT_DISTANCE = 224;
@@ -7,20 +7,20 @@ const MAX_SPATIAL_PEERS = 3;
 
 const PRIVATE_ZONES = [
   {
-    id: "garden-nook",
-    name: "Garden Nook",
+    id: "focus-room",
+    name: "Focus Room",
     x: 2 * 32,
     y: 13 * 32,
     width: 6 * 32,
     height: 3 * 32,
   },
   {
-    id: "sunset-table",
-    name: "Sunset Table",
+    id: "boardroom",
+    name: "Boardroom",
     x: 11 * 32,
     y: 16 * 32,
-    width: 5 * 32,
-    height: 3 * 32,
+    width: 6 * 32,
+    height: 4 * 32,
   },
 ];
 

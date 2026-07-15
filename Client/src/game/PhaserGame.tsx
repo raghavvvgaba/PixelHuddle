@@ -3,8 +3,8 @@ import Phaser from 'phaser';
 import RoomScene from './RoomScene';
 import type { Player, PlayerMovedPayload } from '../../../Shared/realtime';
 
-const GAME_WIDTH = 40 * 32;  // 1280px (40 tiles x 32px)
-const GAME_HEIGHT = 30 * 32; // 960px (30 tiles x 32px)
+const GAME_WIDTH = 32 * 32;
+const GAME_HEIGHT = 22 * 32;
 
 interface LocalPlayerState {
   x: number;

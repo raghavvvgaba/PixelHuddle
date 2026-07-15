@@ -24,245 +24,191 @@ interface PresenceState {
   players?: Player[];
 }
 
-// Verified frame indices from Kenney's packed 37 x 28 tilesheet.
-// Keep these names tied to what the frame actually contains; the pack only
-// provides numeric filenames, so guessed indices quickly turn into visual noise.
-const T = {
-  GRASS: 962,
-  GRASS_LIGHT: 888,
-  SIDEWALK: 703,
-  PLAZA: 706,
-  ASPHALT: 714,
-  ROAD_DASH: 712,
-  ROAD_DASH_VERTICAL: 749,
-  RED_ROOF: 40,
-  GRAY_ROOF: 46,
-  BEIGE_ROOF: 64,
-  RED_WINDOWS: [148, 149, 150, 151],
-  GRAY_WINDOWS: [152, 153, 154, 155],
-  BEIGE_WINDOWS: [156, 157, 158, 159],
-  RED_BRICKS: [185, 186, 187, 188],
-  GRAY_BRICKS: [189, 190, 191, 192],
-  BEIGE_BRICKS: [193, 194, 195, 196],
-  GLASS_DOOR_LEFT: 160,
-  GLASS_DOOR_RIGHT: 161,
-  GREEN_AWNING: [393, 394, 395, 396],
-  ORANGE_AWNING: [397, 398, 399, 400],
-  WATER_TOP_LEFT: 174,
-  WATER_TOP_RIGHT: 175,
-  WATER_BOTTOM_LEFT: 211,
-  WATER_BOTTOM_RIGHT: 212,
-  CAR_GREEN_RIGHT: [660, 661, 662],
-  CAR_GRAY_LEFT: [774, 775, 776, 811, 812, 813],
-  CAR_ORANGE_LEFT: [922, 923, 924, 959, 960, 961],
-  ARMCHAIR: 567,
-  SIDE_TABLE: 568,
-  LOW_TABLE: 569,
-  BENCH: 570,
-  COUNTER_MIDDLE: 606,
-  COUNTER_LONG: 607,
-  VENDING_MACHINE: 604,
-  PLANT_LIGHT: 401,
-  PLANT_DARK: 403,
-  STREET_LIGHT: 481,
-  STREET_LIGHT_ALT: 500,
-  TRASH_CAN: 530,
-  HYDRANT: 533,
-  TRAFFIC_CONE: 680,
-  ROOF_VENT: 144,
-  ROOF_UNIT: 146,
-};
+const D = 32;
 
-const TILE_SIZE = 16;
-const SCALE = 2;
-const D = TILE_SIZE * SCALE; // 32px display
+const W = 32;
+const H = 22;
 
-const W = 40; // grid width
-const H = 30; // grid height
+const OFFICE_ASSET_PATH = '/officeInteriorAssets';
 
-interface AreaLabel {
+interface OfficeArea {
+  color: number;
+  column: number;
+  row: number;
+  width: number;
+  height: number;
+}
+
+interface OfficeWall {
+  column: number;
+  row: number;
+  width: number;
+  height: number;
+}
+
+interface OfficeLabel {
   text: string;
   column: number;
   row: number;
 }
 
-const AREA_LABELS: AreaLabel[] = [
-  { text: "STUDENT COMMONS", column: 10, row: 2 },
-  { text: "MAKER HALL", column: 27, row: 2 },
-  { text: "CAMPUS CAFE", column: 28, row: 17 },
-  { text: "PROJECT HOUSE", column: 3, row: 23 },
-];
-
-// --- Build a compact campus block from connected architectural tile sets. ---
-function buildMaps() {
-  const ground = Array.from({ length: H }, () => Array(W).fill(0));
-  const decor = Array.from({ length: H }, () => Array(W).fill(0));
-  const objects = Array.from({ length: H }, () => Array(W).fill(0));
-
-  const fillRect = (
-    layer: number[][],
-    r0: number,
-    r1: number,
-    c0: number,
-    c1: number,
-    tile: number,
-  ) => {
-    for (let r = r0; r <= r1; r++)
-      for (let c = c0; c <= c1; c++)
-        layer[r][c] = tile;
-  };
-
-  const patternedRow = (
-    layer: number[][],
-    row: number,
-    c0: number,
-    c1: number,
-    tiles: readonly number[],
-  ) => {
-    for (let c = c0; c <= c1; c++) layer[row][c] = tiles[(c - c0) % tiles.length];
-  };
-
-  const buildFacade = (
-    c0: number,
-    c1: number,
-    roofRows: [number, number],
-    windowRow: number,
-    brickRow: number,
-    roofTile: number,
-    windows: readonly number[],
-    bricks: readonly number[],
-  ) => {
-    fillRect(objects, roofRows[0], roofRows[1], c0, c1, roofTile);
-    patternedRow(objects, windowRow, c0, c1, windows);
-    patternedRow(objects, brickRow, c0, c1, bricks);
-  };
-
-  const placeCar = (
-    row: number,
-    column: number,
-    frames: readonly number[],
-  ) => {
-    for (let offset = 0; offset < 3; offset++) {
-      objects[row][column + offset] = frames[offset];
-      if (frames.length === 6) {
-        objects[row + 1][column + offset] = frames[offset + 3];
-      }
-    }
-  };
-
-  fillRect(ground, 0, H - 1, 0, W - 1, T.GRASS);
-
-  // Complete north-side building footprints. Keeping them inside the map gives
-  // each one a readable roof, facade, entrance, and sidewalk on multiple sides.
-  fillRect(ground, 0, 7, 0, W - 1, T.SIDEWALK);
-  fillRect(ground, 1, 7, 0, 7, T.PLAZA);
-
-  buildFacade(8, 20, [1, 4], 5, 6, T.RED_ROOF, T.RED_WINDOWS, T.RED_BRICKS);
-  patternedRow(objects, 7, 8, 20, T.RED_BRICKS);
-  patternedRow(objects, 7, 9, 12, T.GREEN_AWNING);
-  patternedRow(objects, 7, 16, 19, T.ORANGE_AWNING);
-  objects[7][13] = T.GLASS_DOOR_LEFT;
-  objects[7][14] = T.GLASS_DOOR_RIGHT;
-  decor[2][18] = T.ROOF_VENT;
-  decor[3][10] = T.ROOF_UNIT;
-
-  buildFacade(24, 38, [1, 4], 5, 6, T.GRAY_ROOF, T.GRAY_WINDOWS, T.GRAY_BRICKS);
-  patternedRow(objects, 7, 24, 38, T.GRAY_BRICKS);
-  patternedRow(objects, 7, 25, 28, T.GREEN_AWNING);
-  objects[7][30] = T.GLASS_DOOR_LEFT;
-  objects[7][31] = T.GLASS_DOOR_RIGHT;
-  decor[2][36] = T.ROOF_VENT;
-  decor[3][26] = T.ROOF_UNIT;
-
-  // The west plaza is the open spawn point; all server spawn offsets remain clear.
-  objects[1][1] = T.STREET_LIGHT;
-  objects[6][1] = T.STREET_LIGHT_ALT;
-  objects[1][6] = T.BENCH;
-  objects[6][7] = T.TRASH_CAN;
-  objects[6][22] = T.BENCH;
-  objects[6][39] = T.STREET_LIGHT;
-
-  // A two-lane avenue and a vertical cross street form a real city intersection.
-  fillRect(ground, 8, 12, 0, W - 1, T.ASPHALT);
-  fillRect(ground, 8, H - 1, 18, 22, T.ASPHALT);
-  for (let c = 0; c < W; c += 2) {
-    if (c < 18 || c > 22) decor[10][c] = T.ROAD_DASH;
-  }
-  for (let r = 14; r < H; r += 2) decor[r][20] = T.ROAD_DASH_VERTICAL;
-
-  placeCar(8, 2, T.CAR_GREEN_RIGHT);
-  placeCar(11, 10, T.CAR_ORANGE_LEFT);
-  placeCar(8, 31, T.CAR_GRAY_LEFT);
-
-  fillRect(ground, 13, 13, 0, 17, T.SIDEWALK);
-  fillRect(ground, 13, 13, 23, 39, T.SIDEWALK);
-  fillRect(ground, 13, H - 1, 17, 17, T.SIDEWALK);
-  fillRect(ground, 13, H - 1, 23, 23, T.SIDEWALK);
-  objects[13][3] = T.TRAFFIC_CONE;
-  objects[13][15] = T.TRASH_CAN;
-  objects[13][25] = T.TRAFFIC_CONE;
-  objects[13][38] = T.TRASH_CAN;
-
-  // The courtyard is a small park with two crossing paths. The private zones
-  // stay open and readable rather than being buried under furniture.
-  fillRect(ground, 14, 21, 0, 16, T.GRASS_LIGHT);
-  fillRect(ground, 14, 21, 8, 9, T.PLAZA);
-  fillRect(ground, 18, 19, 0, 16, T.PLAZA);
-  fillRect(ground, 16, 18, 11, 15, T.PLAZA);
-
-  [[14, 1], [14, 8], [16, 1], [16, 8], [20, 1], [20, 16]]
-    .forEach(([r, c], index) => {
-      objects[r][c] = index % 2 === 0 ? T.PLANT_LIGHT : T.PLANT_DARK;
-    });
-  objects[15][3] = T.BENCH;
-  objects[15][7] = T.BENCH;
-  objects[17][12] = T.ARMCHAIR;
-  objects[17][15] = T.ARMCHAIR;
-  objects[18][13] = T.COUNTER_MIDDLE;
-  objects[18][14] = T.COUNTER_LONG;
-  objects[20][3] = T.WATER_TOP_LEFT;
-  objects[20][4] = T.WATER_TOP_RIGHT;
-  objects[21][3] = T.WATER_BOTTOM_LEFT;
-  objects[21][4] = T.WATER_BOTTOM_RIGHT;
-  objects[20][11] = T.BENCH;
-  objects[20][14] = T.BENCH;
-
-  // Project House is a complete freestanding building below the courtyard.
-  fillRect(ground, 22, 29, 0, 16, T.SIDEWALK);
-  buildFacade(1, 15, [22, 25], 26, 27, T.BEIGE_ROOF, T.BEIGE_WINDOWS, T.BEIGE_BRICKS);
-  patternedRow(objects, 28, 1, 15, T.BEIGE_BRICKS);
-  patternedRow(objects, 28, 3, 6, T.GREEN_AWNING);
-  objects[28][10] = T.GLASS_DOOR_LEFT;
-  objects[28][11] = T.GLASS_DOOR_RIGHT;
-  decor[23][13] = T.ROOF_VENT;
-  decor[24][3] = T.ROOF_UNIT;
-
-  // The cafe has the same architectural depth plus a paved terrace in front.
-  fillRect(ground, 14, 29, 24, 39, T.SIDEWALK);
-  buildFacade(25, 38, [16, 20], 21, 22, T.RED_ROOF, T.RED_WINDOWS, T.RED_BRICKS);
-  patternedRow(objects, 23, 25, 38, T.RED_BRICKS);
-  patternedRow(objects, 23, 26, 29, T.GREEN_AWNING);
-  patternedRow(objects, 23, 33, 36, T.ORANGE_AWNING);
-  objects[23][30] = T.GLASS_DOOR_LEFT;
-  objects[23][31] = T.GLASS_DOOR_RIGHT;
-  decor[17][36] = T.ROOF_VENT;
-  decor[18][27] = T.ROOF_UNIT;
-
-  fillRect(ground, 24, 29, 24, 39, T.PLAZA);
-  [[26, 27], [26, 34], [28, 29], [28, 36]].forEach(([r, c]) => {
-    objects[r][c] = T.SIDE_TABLE;
-    objects[r][c - 1] = T.ARMCHAIR;
-    objects[r][c + 1] = T.ARMCHAIR;
-  });
-  objects[25][24] = T.STREET_LIGHT;
-  objects[25][39] = T.PLANT_DARK;
-  objects[29][24] = T.TRASH_CAN;
-  objects[29][39] = T.STREET_LIGHT_ALT;
-
-  return { ground, decor, objects };
+interface OfficeItem {
+  texture: string;
+  frame?: string;
+  column: number;
+  row: number;
+  scale: number;
+  depthOffset?: number;
+  flipX?: boolean;
+  rotation?: number;
+  collision?: { width: number; height: number };
 }
 
-const { ground: GROUND, decor: DECOR, objects: OBJECTS } = buildMaps();
+const FURNITURE_FRAMES = [
+  { name: 'cabinet', x: 0, y: 458, width: 100, height: 182 },
+  { name: 'cabinet-narrow', x: 120, y: 458, width: 40, height: 182 },
+  { name: 'cabinet-alt', x: 180, y: 458, width: 100, height: 182 },
+  { name: 'desk-horizontal', x: 160, y: 739, width: 201, height: 221 },
+] as const;
+
+const OFFICE_AREAS: OfficeArea[] = [
+  // A small arrival area and one continuous open office floor.
+  { column: 0.5, row: 0.5, width: 8.5, height: 11.5, color: 0xdccbae },
+  { column: 9, row: 0.5, width: 22.5, height: 14, color: 0xcbd6dc },
+  { column: 18.5, row: 14.5, width: 13, height: 7, color: 0xcbd6dc },
+  { column: 0.5, row: 17.5, width: 9.5, height: 4, color: 0xcbd6dc },
+
+  // Subtle desk-bank rugs create density without building extra rooms.
+  { column: 10, row: 1.5, width: 20.5, height: 3.8, color: 0xb8c9d2 },
+  { column: 10, row: 6, width: 20.5, height: 3.8, color: 0xc0ced6 },
+  { column: 10, row: 10.5, width: 20.5, height: 3.5, color: 0xb8c9d2 },
+  { column: 19.2, row: 15, width: 11.7, height: 6, color: 0xb8c9d2 },
+
+  // The only two enclosed rooms.
+  { column: 0.5, row: 12, width: 8.5, height: 5.5, color: 0xc8ddd6 },
+  { column: 10, row: 14.5, width: 8.5, height: 7, color: 0xdfd3b8 },
+];
+
+const OFFICE_WALLS: OfficeWall[] = [
+  // Outer shell, with a compact entrance beside the lower workstation bank.
+  { column: 0, row: 0, width: 32, height: 0.45 },
+  { column: 0, row: 21.55, width: 19, height: 0.45 },
+  { column: 22, row: 21.55, width: 10, height: 0.45 },
+  { column: 0, row: 0, width: 0.45, height: 22 },
+  { column: 31.55, row: 0, width: 0.45, height: 22 },
+
+  // Arrival area opens directly into the main office.
+  { column: 8.8, row: 0, width: 0.35, height: 4.2 },
+  { column: 8.8, row: 7, width: 0.35, height: 5 },
+
+  // Focus room.
+  { column: 0, row: 11.8, width: 3, height: 0.35 },
+  { column: 6, row: 11.8, width: 3, height: 0.35 },
+  { column: 8.8, row: 12, width: 0.35, height: 5.5 },
+  { column: 0, row: 17.3, width: 3, height: 0.35 },
+  { column: 6, row: 17.3, width: 3, height: 0.35 },
+
+  // Boardroom, with a north-facing doorway into the open office.
+  { column: 10, row: 14.3, width: 3, height: 0.35 },
+  { column: 15.5, row: 14.3, width: 3, height: 0.35 },
+  { column: 10, row: 14.3, width: 0.35, height: 7.7 },
+  { column: 18.3, row: 14.3, width: 0.35, height: 7.7 },
+];
+
+const OFFICE_LABELS: OfficeLabel[] = [
+  { text: 'WELCOME', column: 1.2, row: 1 },
+  { text: 'OPEN OFFICE', column: 10, row: 0.9 },
+];
+
+const CHAIR_TEXTURES = [
+  'office-chair-green-front',
+  'office-chair-purple-front',
+  'office-chair-yellow-front',
+] as const;
+
+const createWorkstation = (
+  column: number,
+  row: number,
+  index: number,
+): OfficeItem[] => [
+  {
+    texture: 'office-furniture',
+    frame: 'desk-horizontal',
+    column,
+    row,
+    scale: 0.32,
+    collision: { width: 58, height: 32 },
+  },
+  {
+    texture: 'office-computer-front',
+    column: column - 0.12,
+    row: row - 0.35,
+    scale: 0.27,
+    depthOffset: 0.5,
+  },
+  {
+    texture: 'office-papers-graphs',
+    column: column + 0.72,
+    row: row - 0.2,
+    scale: 0.14,
+    depthOffset: 0.48,
+  },
+  {
+    texture: CHAIR_TEXTURES[index % CHAIR_TEXTURES.length],
+    column,
+    row: row + 1.08,
+    scale: 0.17,
+    collision: { width: 20, height: 20 },
+  },
+];
+
+const MAIN_WORKSTATIONS = [2.8, 7.3, 11.8].flatMap((row, rowIndex) =>
+  [11.7, 13.85, 16, 18.15, 20.3, 22.45, 24.6, 26.75, 28.9].flatMap((column, columnIndex) =>
+    createWorkstation(column, row, rowIndex * 9 + columnIndex),
+  ),
+);
+
+const LOWER_WORKSTATIONS = [16.2, 19.4].flatMap((row, rowIndex) =>
+  [22.6, 24.55, 26.5, 28.25, 30].flatMap((column, columnIndex) =>
+    createWorkstation(column, row, 27 + rowIndex * 5 + columnIndex),
+  ),
+);
+
+const OFFICE_ITEMS: OfficeItem[] = [
+  // The arrival area doubles as a small workstation bank around a clear spawn aisle.
+  ...createWorkstation(2.2, 2.4, 23),
+  ...createWorkstation(4.4, 2.4, 24),
+  ...createWorkstation(6.6, 2.4, 25),
+  { texture: 'office-furniture', frame: 'desk-horizontal', column: 5, row: 9.2, scale: 0.38, collision: { width: 68, height: 36 } },
+  { texture: 'office-computer-front', column: 4.9, row: 8.8, scale: 0.27, depthOffset: 0.5 },
+  { texture: 'office-chair-green-front', column: 5, row: 10.4, scale: 0.18, collision: { width: 22, height: 22 } },
+  { texture: 'office-window', column: 4.7, row: 0.8, scale: 0.28 },
+  { texture: 'office-furniture', frame: 'cabinet', column: 1.2, row: 9.5, scale: 0.25, collision: { width: 25, height: 28 } },
+  { texture: 'office-furniture', frame: 'cabinet-alt', column: 2.3, row: 9.5, scale: 0.25, collision: { width: 25, height: 28 } },
+
+  // Fifteen close, open workstations fill the main office.
+  ...MAIN_WORKSTATIONS,
+  { texture: 'office-whiteboard', column: 27.3, row: 0.75, scale: 0.2 },
+  { texture: 'office-furniture', frame: 'cabinet', column: 30.4, row: 12.5, scale: 0.24, collision: { width: 24, height: 28 } },
+
+  // Focus room and boardroom align with the server-authoritative private zones.
+  { texture: 'office-round-table', column: 5, row: 14.7, scale: 0.28, collision: { width: 46, height: 38 } },
+  { texture: 'office-chair-green-side', column: 3.8, row: 14.7, scale: 0.17, collision: { width: 20, height: 20 } },
+  { texture: 'office-chair-green-side', column: 6.2, row: 14.7, scale: 0.17, flipX: true, collision: { width: 20, height: 20 } },
+  { texture: 'office-whiteboard', column: 5, row: 12.5, scale: 0.2 },
+  { texture: 'office-round-table', column: 14.2, row: 18, scale: 0.4, collision: { width: 68, height: 56 } },
+  { texture: 'office-chair-purple-side', column: 12.3, row: 18, scale: 0.18, collision: { width: 20, height: 20 } },
+  { texture: 'office-chair-purple-side', column: 16.1, row: 18, scale: 0.18, flipX: true, collision: { width: 20, height: 20 } },
+  { texture: 'office-chair-purple-back', column: 14.2, row: 20, scale: 0.18, collision: { width: 20, height: 20 } },
+  { texture: 'office-chair-yellow-front', column: 14.2, row: 16, scale: 0.18, collision: { width: 20, height: 20 } },
+  { texture: 'office-whiteboard', column: 17.5, row: 15.4, scale: 0.18 },
+
+  // Eight more desks fill the lower floor instead of using a lounge or quiet room.
+  ...LOWER_WORKSTATIONS,
+  ...createWorkstation(3.1, 19.4, 21),
+  ...createWorkstation(5.15, 19.4, 22),
+  ...createWorkstation(7.2, 19.4, 23),
+];
 
 export default class RoomScene extends Phaser.Scene {
   selfSocketId: string | null;
@@ -291,11 +237,24 @@ export default class RoomScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.spritesheet(
-      'tiles',
-      '/kenney_roguelike-modern-city/Tilemap/tilemap_packed.png',
-      { frameWidth: TILE_SIZE, frameHeight: TILE_SIZE }
-    );
+    this.load.image('office-floor', `${OFFICE_ASSET_PATH}/groundTile.png`);
+    this.load.image('office-furniture', `${OFFICE_ASSET_PATH}/furnitureTile.png`);
+    this.load.image('office-computer-front', `${OFFICE_ASSET_PATH}/computerFullFront.png`);
+    this.load.image('office-round-table', `${OFFICE_ASSET_PATH}/roundTable.png`);
+    this.load.image('office-stool', `${OFFICE_ASSET_PATH}/stool.png`);
+    this.load.image('office-whiteboard', `${OFFICE_ASSET_PATH}/whiteboard.png`);
+    this.load.image('office-coffee-machine', `${OFFICE_ASSET_PATH}/coffeeMachine.png`);
+    this.load.image('office-window', `${OFFICE_ASSET_PATH}/window.png`);
+    this.load.image('office-papers-graphs', `${OFFICE_ASSET_PATH}/papersGraphs.png`);
+
+    for (const color of ['Green', 'Purple', 'Yellow']) {
+      for (const direction of ['Back', 'Front', 'Side']) {
+        this.load.image(
+          `office-chair-${color.toLowerCase()}-${direction.toLowerCase()}`,
+          `${OFFICE_ASSET_PATH}/wheelChair${color}${direction}.png`,
+        );
+      }
+    }
 
     // Load character walk frames
     for (let i = 0; i < 8; i++) {
@@ -306,45 +265,130 @@ export default class RoomScene extends Phaser.Scene {
     }
   }
 
-  create() {
-    // Layer 1: Ground tiles (all walkable, no physics)
-    for (let r = 0; r < H; r++) {
-      for (let c = 0; c < W; c++) {
-        if (GROUND[r][c] === 0) continue;
-        this.add.image(c * D, r * D, 'tiles', GROUND[r][c])
-          .setOrigin(0, 0)
-          .setScale(SCALE);
-      }
-    }
+  registerFurnitureFrames() {
+    const texture = this.textures.get('office-furniture');
 
-    // Layer 2: visual details that should not block player movement.
-    for (let r = 0; r < H; r++) {
-      for (let c = 0; c < W; c++) {
-        if (DECOR[r][c] === 0) continue;
-        this.add.image(c * D, r * D, 'tiles', DECOR[r][c])
-          .setOrigin(0, 0)
-          .setScale(SCALE)
-          .setDepth(1);
-      }
-    }
+    FURNITURE_FRAMES.forEach((frame) => {
+      if (texture.has(frame.name)) return;
 
-    AREA_LABELS.forEach((label) => {
+      texture.add(
+        frame.name,
+        0,
+        frame.x,
+        frame.y,
+        frame.width,
+        frame.height,
+      );
+    });
+  }
+
+  addStaticCollider(x: number, y: number, width: number, height: number) {
+    const collider = this.add
+      .rectangle(x, y, width, height, 0x000000, 0)
+      .setVisible(false);
+    this.physics.add.existing(collider, true);
+    this.obstacles.add(collider);
+  }
+
+  addOfficeWall(wall: OfficeWall) {
+    const x = wall.column * D;
+    const y = wall.row * D;
+    const width = wall.width * D;
+    const height = wall.height * D;
+
+    this.add
+      .rectangle(x, y, width, height, 0x574c4d)
+      .setOrigin(0)
+      .setDepth(5);
+
+    const inset = Math.min(4, width / 4, height / 4);
+    this.add
+      .rectangle(
+        x + inset,
+        y + inset,
+        Math.max(1, width - inset * 2),
+        Math.max(1, height - inset * 2),
+        0xe7ddd0,
+      )
+      .setOrigin(0)
+      .setDepth(5.1);
+
+    this.addStaticCollider(x + width / 2, y + height / 2, width, height);
+  }
+
+  addOfficeItem(item: OfficeItem) {
+    const image = this.add
+      .image(
+        item.column * D + D / 2,
+        item.row * D + D / 2,
+        item.texture,
+        item.frame,
+      )
+      .setScale(item.scale)
+      .setFlipX(Boolean(item.flipX))
+      .setRotation(item.rotation ?? 0)
+      .setDepth(6 + item.row / 100 + (item.depthOffset ?? 0));
+
+    if (item.collision) {
+      this.addStaticCollider(
+        image.x,
+        image.y,
+        item.collision.width,
+        item.collision.height,
+      );
+    }
+  }
+
+  createOfficeEnvironment() {
+    this.registerFurnitureFrames();
+
+    this.add
+      .tileSprite(0, 0, W * D, H * D, 'office-floor')
+      .setOrigin(0)
+      .setDepth(0);
+
+    OFFICE_AREAS.forEach((area) => {
+      const room = this.add
+        .rectangle(
+          area.column * D,
+          area.row * D,
+          area.width * D,
+          area.height * D,
+          area.color,
+          0.66,
+        )
+        .setOrigin(0)
+        .setDepth(1);
+      room.setStrokeStyle(1, 0xffffff, 0.35);
+    });
+
+    this.obstacles = this.physics.add.staticGroup();
+    OFFICE_WALLS.forEach((wall) => this.addOfficeWall(wall));
+
+    OFFICE_LABELS.forEach((label) => {
       this.add
         .text(label.column * D, label.row * D, label.text, {
-          fontFamily: 'monospace',
-          fontSize: '9px',
-          color: '#f8fafc',
-          backgroundColor: '#111827b8',
-          padding: { x: 6, y: 3 },
+          fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+          fontSize: '10px',
+          fontStyle: '700',
+          color: '#4f4544',
+          backgroundColor: '#fffaf0c7',
+          padding: { x: 7, y: 4 },
         })
-        .setDepth(3);
+        .setDepth(7);
     });
+
+    OFFICE_ITEMS.forEach((item) => this.addOfficeItem(item));
+  }
+
+  create() {
+    this.createOfficeEnvironment();
 
     PRIVATE_ZONES.forEach((zone) => {
       const fill = this.add
         .rectangle(zone.x, zone.y, zone.width, zone.height, zone.color, 0.1)
         .setOrigin(0)
-        .setDepth(2);
+        .setDepth(3);
       fill.setStrokeStyle(2, zone.color, 0.7);
 
       this.add
@@ -355,24 +399,8 @@ export default class RoomScene extends Phaser.Scene {
           backgroundColor: '#111827cc',
           padding: { x: 7, y: 4 },
         })
-        .setDepth(3);
+        .setDepth(8);
     });
-
-    // Layer 3: walls and furniture with collision bodies.
-    this.obstacles = this.physics.add.staticGroup();
-    for (let r = 0; r < H; r++) {
-      for (let c = 0; c < W; c++) {
-        if (OBJECTS[r][c] === 0) continue;
-        const spr = this.obstacles.create(
-          c * D + D / 2,
-          r * D + D / 2,
-          'tiles',
-          OBJECTS[r][c]
-        );
-        spr.setScale(SCALE);
-        spr.refreshBody();
-      }
-    }
 
     // Walk animation
     this.anims.create({
@@ -386,7 +414,7 @@ export default class RoomScene extends Phaser.Scene {
     // Original frame is 192x256, scale down to ~36x48 in game
     const charScale = D / 192 * 1.1; // slightly larger than a tile for visibility
     this.player = this.physics.add.sprite(
-      5 * D + D / 2,
+      4 * D + D / 2,
       5 * D + D / 2,
       'char_walk0'
     );

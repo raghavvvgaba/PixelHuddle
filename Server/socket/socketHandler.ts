@@ -69,13 +69,13 @@ const getDistance = (firstPlayer: Player, secondPlayer: Player) =>
 const getSpawnPoint = (playerCount: number) => {
   const spawnOffsets = [
     { x: 0, y: 0 },
-    { x: 64, y: 0 },
-    { x: 0, y: 64 },
-    { x: 64, y: 64 },
-    { x: -64, y: 0 },
-    { x: 0, y: -64 },
+    { x: 32, y: 0 },
+    { x: -32, y: 0 },
+    { x: 0, y: 32 },
+    { x: 32, y: 32 },
+    { x: -32, y: 32 },
   ];
-  const baseX = 5 * 32 + 16;
+  const baseX = 4 * 32 + 16;
   const baseY = 5 * 32 + 16;
   const offset = spawnOffsets[playerCount % spawnOffsets.length]!;
 
