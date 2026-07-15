@@ -24,124 +24,53 @@ interface PresenceState {
   players?: Player[];
 }
 
-// Tile frame indices from the Kenney Roguelike Modern City sprite sheet
-// Sprite sheet: 37 cols x 28 rows = 1036 tiles, each 16x16px
+// Verified frame indices from Kenney's packed 37 x 28 tilesheet.
+// Keep these names tied to what the frame actually contains; the pack only
+// provides numeric filenames, so guessed indices quickly turn into visual noise.
 const T = {
-  // Ground (row 0)
-  DIRT: 1,
-  CONCRETE_DARK: 4,
-  CONCRETE: 5,
-  CONCRETE_LIGHT: 6,
-  GRASS_DARK: 8,
-  GRASS: 9,
-  GRASS_LIGHT: 10,
-
-  // Roads (rows 0-2)
-  ROAD_H1: 15,      // horizontal with yellow center line
-  ROAD_H2: 16,      // horizontal with white dashes
-  ROAD_EDGE_T: 17,  // road top edge
-  ROAD_EDGE_B: 18,  // road bottom edge
-  ROAD_CORNER_NE: 21,
-  ROAD_CORNER_NW: 22,
-  ROAD_CORNER_SE: 23,
-  ROAD_CORNER_SW: 24,
-  ROAD_T_UP: 25,    // T pointing up (from horizontal road)
-  ROAD_T_DOWN: 26,
-  ROAD_T_LEFT: 27,
-  ROAD_T_RIGHT: 28,
-  ROAD_CROSS: 29,
-  ROAD_V1: 40,      // vertical road (row 1)
-  ROAD_V2: 41,
-
-  // Grass-to-road transitions (row 2)
-  GRASS_ROAD_TL: 78,
-  GRASS_ROAD_TR: 79,
-  GRASS_ROAD_BL: 82,  // approximate
-  GRASS_ROAD_BR: 83,
-
-  // Buildings (rows 3-4)
-  BLDG_WALL_DARK: 111,
-  BLDG_WINDOW_DARK: 112,
-  BLDG_WALL_DARK2: 113,
-  BLDG_WALL_DARK3: 114,
-  BLDG_ROOF_DARK: 115,
-  BLDG_WALL_BLUE: 121,
-  BLDG_WINDOW_BLUE: 122,
-  BLDG_WALL_BLUE2: 123,
-  BLDG_ROOF_BLUE: 124,
-  BLDG_WALL_RED: 131,
-  BLDG_WINDOW_RED: 132,
-  BLDG_WALL_RED2: 133,
-  BLDG_WALL_BEIGE: 141,
-  BLDG_WINDOW_BEIGE: 142,
-  BLDG_WALL_BEIGE2: 143,
-  BLDG_WALL_GRAY: 148,
-  BLDG_WINDOW_GRAY: 149,
-  BLDG_WALL_GRAY2: 150,
-  BLDG_WALL_WHITE: 158,
-  BLDG_WINDOW_WHITE: 159,
-  BLDG_WALL_WHITE2: 160,
-
-  // Doors (row 5)
-  DOOR_DARK: 185,
-  DOOR_LIGHT: 186,
-  DOOR_OPEN: 187,
-  DOOR_RED: 188,
-  DOOR_BLUE: 189,
-
-  // Interior floors (row 5)
-  INDOOR_FLOOR: 193,
-  INDOOR_FLOOR2: 194,
-  INDOOR_CARPET: 195,
-  INDOOR_WALL: 200,
-
-  // Furniture (row 7)
-  TABLE_DARK: 259,
-  TABLE_LIGHT: 260,
-  CHAIR_DARK: 266,
-  CHAIR_LIGHT: 267,
-  SHELF: 276,
-  DESK: 281,
-  COMPUTER: 296,
-
-  // Bushes & plants (rows 11-12)
-  BUSH_SMALL: 407,
-  BUSH_ROUND: 408,
-  BUSH_FLOWER: 409,
-  HEDGE: 410,
-  TREE_SMALL: 416,
-  TREE_SMALL2: 417,
-  TREE_MEDIUM: 425,
-  TREE_MEDIUM2: 426,
-  TREE_ROUND: 430,
-  TREE_ROUND2: 431,
-  TREE_LARGE: 440,
-  TREE_PINE: 450,
-  TREE_PINE2: 451,
-  FENCE: 465,
-
-  // Vehicles (rows 13-14)
-  CAR_BLUE: 481,
-  CAR_RED: 482,
-  CAR_WHITE: 483,
-  CAR_GREEN: 484,
-  CAR_YELLOW: 485,
-  CAR_GRAY: 486,
-  TRUCK_WHITE: 500,
-  TRUCK_RED: 501,
-  VAN_BLUE: 510,
-
-  // Street objects (rows 15-16)
-  LAMP: 555,
-  LAMP2: 556,
-  TRAFFIC_LIGHT: 560,
+  GRASS: 962,
+  GRASS_LIGHT: 888,
+  SIDEWALK: 703,
+  PLAZA: 706,
+  ASPHALT: 714,
+  ROAD_DASH: 712,
+  ROAD_DASH_VERTICAL: 749,
+  RED_ROOF: 40,
+  GRAY_ROOF: 46,
+  BEIGE_ROOF: 64,
+  RED_WINDOWS: [148, 149, 150, 151],
+  GRAY_WINDOWS: [152, 153, 154, 155],
+  BEIGE_WINDOWS: [156, 157, 158, 159],
+  RED_BRICKS: [185, 186, 187, 188],
+  GRAY_BRICKS: [189, 190, 191, 192],
+  BEIGE_BRICKS: [193, 194, 195, 196],
+  GLASS_DOOR_LEFT: 160,
+  GLASS_DOOR_RIGHT: 161,
+  GREEN_AWNING: [393, 394, 395, 396],
+  ORANGE_AWNING: [397, 398, 399, 400],
+  WATER_TOP_LEFT: 174,
+  WATER_TOP_RIGHT: 175,
+  WATER_BOTTOM_LEFT: 211,
+  WATER_BOTTOM_RIGHT: 212,
+  CAR_GREEN_RIGHT: [660, 661, 662],
+  CAR_GRAY_LEFT: [774, 775, 776, 811, 812, 813],
+  CAR_ORANGE_LEFT: [922, 923, 924, 959, 960, 961],
+  ARMCHAIR: 567,
+  SIDE_TABLE: 568,
+  LOW_TABLE: 569,
   BENCH: 570,
-  BENCH2: 571,
-  TRASH: 580,
-  TRASH2: 581,
-  HYDRANT: 590,
-  BARRIER: 595,
-  SIGN: 600,
+  COUNTER_MIDDLE: 606,
+  COUNTER_LONG: 607,
+  VENDING_MACHINE: 604,
+  PLANT_LIGHT: 401,
+  PLANT_DARK: 403,
+  STREET_LIGHT: 481,
+  STREET_LIGHT_ALT: 500,
+  TRASH_CAN: 530,
+  HYDRANT: 533,
+  TRAFFIC_CONE: 680,
+  ROOF_VENT: 144,
+  ROOF_UNIT: 146,
 };
 
 const TILE_SIZE = 16;
@@ -151,260 +80,189 @@ const D = TILE_SIZE * SCALE; // 32px display
 const W = 40; // grid width
 const H = 30; // grid height
 
-// --- Build maps programmatically ---
+interface AreaLabel {
+  text: string;
+  column: number;
+  row: number;
+}
+
+const AREA_LABELS: AreaLabel[] = [
+  { text: "STUDENT COMMONS", column: 10, row: 2 },
+  { text: "MAKER HALL", column: 27, row: 2 },
+  { text: "CAMPUS CAFE", column: 28, row: 17 },
+  { text: "PROJECT HOUSE", column: 3, row: 23 },
+];
+
+// --- Build a compact campus block from connected architectural tile sets. ---
 function buildMaps() {
-  // 0 = no tile rendered
   const ground = Array.from({ length: H }, () => Array(W).fill(0));
-  // 0 = no object, >0 = tile index (collision)
+  const decor = Array.from({ length: H }, () => Array(W).fill(0));
   const objects = Array.from({ length: H }, () => Array(W).fill(0));
 
-  // ---- Fill everything with grass ----
-  for (let r = 0; r < H; r++)
-    for (let c = 0; c < W; c++)
-      ground[r][c] = T.GRASS;
-
-  // ---- Buildings - Northwest block (rows 0-5, cols 0-10) ----
-  const fillBldg = (
+  const fillRect = (
+    layer: number[][],
     r0: number,
     r1: number,
     c0: number,
     c1: number,
-    wallTile: number,
-    windowTile: number,
+    tile: number,
   ) => {
     for (let r = r0; r <= r1; r++)
       for (let c = c0; c <= c1; c++)
-        objects[r][c] = (r === r0 || r === r1 || c === c0 || c === c1)
-          ? (c % 3 === 0 && r !== r0 && r !== r1 ? windowTile : wallTile)
-          : wallTile;
+        layer[r][c] = tile;
   };
 
-  // NW building (dark)
-  fillBldg(0, 4, 0, 9, T.BLDG_WALL_DARK, T.BLDG_WINDOW_DARK);
-  objects[4][5] = T.DOOR_DARK; // door on south side
-  ground[4][5] = T.CONCRETE;
+  const patternedRow = (
+    layer: number[][],
+    row: number,
+    c0: number,
+    c1: number,
+    tiles: readonly number[],
+  ) => {
+    for (let c = c0; c <= c1; c++) layer[row][c] = tiles[(c - c0) % tiles.length];
+  };
 
-  // NE building (blue)
-  fillBldg(0, 4, 22, 34, T.BLDG_WALL_BLUE, T.BLDG_WINDOW_BLUE);
-  objects[4][28] = T.DOOR_BLUE;
-  ground[4][28] = T.CONCRETE;
+  const buildFacade = (
+    c0: number,
+    c1: number,
+    roofRows: [number, number],
+    windowRow: number,
+    brickRow: number,
+    roofTile: number,
+    windows: readonly number[],
+    bricks: readonly number[],
+  ) => {
+    fillRect(objects, roofRows[0], roofRows[1], c0, c1, roofTile);
+    patternedRow(objects, windowRow, c0, c1, windows);
+    patternedRow(objects, brickRow, c0, c1, bricks);
+  };
 
-  // SE building (red)
-  fillBldg(24, 29, 25, 34, T.BLDG_WALL_RED, T.BLDG_WINDOW_RED);
-  objects[24][29] = T.DOOR_RED;
-  ground[24][29] = T.CONCRETE;
+  const placeCar = (
+    row: number,
+    column: number,
+    frames: readonly number[],
+  ) => {
+    for (let offset = 0; offset < 3; offset++) {
+      objects[row][column + offset] = frames[offset];
+      if (frames.length === 6) {
+        objects[row + 1][column + offset] = frames[offset + 3];
+      }
+    }
+  };
 
-  // SW building (beige) - L-shaped
-  fillBldg(24, 29, 0, 7, T.BLDG_WALL_BEIGE, T.BLDG_WINDOW_BEIGE);
-  fillBldg(26, 29, 8, 12, T.BLDG_WALL_BEIGE, T.BLDG_WINDOW_BEIGE);
-  objects[24][4] = T.DOOR_LIGHT;
-  ground[24][4] = T.CONCRETE;
+  fillRect(ground, 0, H - 1, 0, W - 1, T.GRASS);
 
-  // Small building - center-right (gray)
-  fillBldg(1, 3, 14, 18, T.BLDG_WALL_GRAY, T.BLDG_WINDOW_GRAY);
-  objects[3][16] = T.DOOR_OPEN;
-  ground[3][16] = T.CONCRETE;
+  // Complete north-side building footprints. Keeping them inside the map gives
+  // each one a readable roof, facade, entrance, and sidewalk on multiple sides.
+  fillRect(ground, 0, 7, 0, W - 1, T.SIDEWALK);
+  fillRect(ground, 1, 7, 0, 7, T.PLAZA);
 
-  // ---- Horizontal road 1 (rows 7-10) ----
-  for (let c = 0; c < W; c++) {
-    ground[6][c] = T.CONCRETE;  // north sidewalk
-    ground[7][c] = T.ROAD_EDGE_T;
-    ground[8][c] = T.ROAD_H1;
-    ground[9][c] = T.ROAD_H2;
-    ground[10][c] = T.ROAD_EDGE_B;
-    ground[11][c] = T.CONCRETE; // south sidewalk
+  buildFacade(8, 20, [1, 4], 5, 6, T.RED_ROOF, T.RED_WINDOWS, T.RED_BRICKS);
+  patternedRow(objects, 7, 8, 20, T.RED_BRICKS);
+  patternedRow(objects, 7, 9, 12, T.GREEN_AWNING);
+  patternedRow(objects, 7, 16, 19, T.ORANGE_AWNING);
+  objects[7][13] = T.GLASS_DOOR_LEFT;
+  objects[7][14] = T.GLASS_DOOR_RIGHT;
+  decor[2][18] = T.ROOF_VENT;
+  decor[3][10] = T.ROOF_UNIT;
+
+  buildFacade(24, 38, [1, 4], 5, 6, T.GRAY_ROOF, T.GRAY_WINDOWS, T.GRAY_BRICKS);
+  patternedRow(objects, 7, 24, 38, T.GRAY_BRICKS);
+  patternedRow(objects, 7, 25, 28, T.GREEN_AWNING);
+  objects[7][30] = T.GLASS_DOOR_LEFT;
+  objects[7][31] = T.GLASS_DOOR_RIGHT;
+  decor[2][36] = T.ROOF_VENT;
+  decor[3][26] = T.ROOF_UNIT;
+
+  // The west plaza is the open spawn point; all server spawn offsets remain clear.
+  objects[1][1] = T.STREET_LIGHT;
+  objects[6][1] = T.STREET_LIGHT_ALT;
+  objects[1][6] = T.BENCH;
+  objects[6][7] = T.TRASH_CAN;
+  objects[6][22] = T.BENCH;
+  objects[6][39] = T.STREET_LIGHT;
+
+  // A two-lane avenue and a vertical cross street form a real city intersection.
+  fillRect(ground, 8, 12, 0, W - 1, T.ASPHALT);
+  fillRect(ground, 8, H - 1, 18, 22, T.ASPHALT);
+  for (let c = 0; c < W; c += 2) {
+    if (c < 18 || c > 22) decor[10][c] = T.ROAD_DASH;
   }
+  for (let r = 14; r < H; r += 2) decor[r][20] = T.ROAD_DASH_VERTICAL;
 
-  // ---- Horizontal road 2 (rows 21-24) ----
-  for (let c = 0; c < W; c++) {
-    ground[20][c] = T.CONCRETE;
-    ground[21][c] = T.ROAD_EDGE_T;
-    ground[22][c] = T.ROAD_H2;
-    ground[23][c] = T.ROAD_H1;
-    ground[24][c] = T.ROAD_EDGE_B;
-    ground[25][c] = T.CONCRETE;
-  }
-  // Override: SE building already set, keep building tiles
+  placeCar(8, 2, T.CAR_GREEN_RIGHT);
+  placeCar(11, 10, T.CAR_ORANGE_LEFT);
+  placeCar(8, 31, T.CAR_GRAY_LEFT);
 
-  // ---- Vertical road (cols 19-20, rows 6-25) ----
-  for (let r = 6; r <= 25; r++) {
-    ground[r][18] = T.CONCRETE;
-    ground[r][19] = T.ROAD_V1;
-    ground[r][20] = T.ROAD_V2;
-    ground[r][21] = T.CONCRETE;
-  }
+  fillRect(ground, 13, 13, 0, 17, T.SIDEWALK);
+  fillRect(ground, 13, 13, 23, 39, T.SIDEWALK);
+  fillRect(ground, 13, H - 1, 17, 17, T.SIDEWALK);
+  fillRect(ground, 13, H - 1, 23, 23, T.SIDEWALK);
+  objects[13][3] = T.TRAFFIC_CONE;
+  objects[13][15] = T.TRASH_CAN;
+  objects[13][25] = T.TRAFFIC_CONE;
+  objects[13][38] = T.TRASH_CAN;
 
-  // ---- Intersections ----
-  ground[7][19] = T.ROAD_CORNER_NW;
-  ground[7][20] = T.ROAD_CORNER_NE;
-  ground[10][19] = T.ROAD_T_UP;
-  ground[10][20] = T.ROAD_T_UP;
-  ground[21][19] = T.ROAD_T_DOWN;
-  ground[21][20] = T.ROAD_T_DOWN;
-  ground[8][19] = T.ROAD_CROSS;
-  ground[8][20] = T.ROAD_CROSS;
-  ground[9][19] = T.ROAD_CROSS;
-  ground[9][20] = T.ROAD_CROSS;
-  ground[22][19] = T.ROAD_CROSS;
-  ground[22][20] = T.ROAD_CROSS;
-  ground[23][19] = T.ROAD_CROSS;
-  ground[23][20] = T.ROAD_CROSS;
+  // The courtyard is a small park with two crossing paths. The private zones
+  // stay open and readable rather than being buried under furniture.
+  fillRect(ground, 14, 21, 0, 16, T.GRASS_LIGHT);
+  fillRect(ground, 14, 21, 8, 9, T.PLAZA);
+  fillRect(ground, 18, 19, 0, 16, T.PLAZA);
+  fillRect(ground, 16, 18, 11, 15, T.PLAZA);
 
-  // ---- Central park (rows 12-19, cols 1-17) ----
-  // Park is already grass. Add a concrete path through the middle
-  for (let c = 1; c < 18; c++) {
-    ground[15][c] = T.CONCRETE_LIGHT;
-    ground[16][c] = T.CONCRETE_LIGHT;
-  }
-  // Vertical path in park
-  for (let r = 12; r < 20; r++) {
-    ground[r][9] = T.CONCRETE_LIGHT;
-    ground[r][10] = T.CONCRETE_LIGHT;
-  }
+  [[14, 1], [14, 8], [16, 1], [16, 8], [20, 1], [20, 16]]
+    .forEach(([r, c], index) => {
+      objects[r][c] = index % 2 === 0 ? T.PLANT_LIGHT : T.PLANT_DARK;
+    });
+  objects[15][3] = T.BENCH;
+  objects[15][7] = T.BENCH;
+  objects[17][12] = T.ARMCHAIR;
+  objects[17][15] = T.ARMCHAIR;
+  objects[18][13] = T.COUNTER_MIDDLE;
+  objects[18][14] = T.COUNTER_LONG;
+  objects[20][3] = T.WATER_TOP_LEFT;
+  objects[20][4] = T.WATER_TOP_RIGHT;
+  objects[21][3] = T.WATER_BOTTOM_LEFT;
+  objects[21][4] = T.WATER_BOTTOM_RIGHT;
+  objects[20][11] = T.BENCH;
+  objects[20][14] = T.BENCH;
 
-  // ---- Parking lot area (rows 26-29, cols 25-34) ----
-  // Ground is already grass from SE building, override
-  for (let r = 26; r < H; r++)
-    for (let c = 25; c < 35; c++)
-      ground[r][c] = T.CONCRETE_DARK;
-  // Parking lines
-  for (let c = 26; c < 35; c += 3) {
-    objects[26][c] = T.CAR_BLUE;
-    objects[27][c + 1] = T.CAR_RED;
-    objects[28][c] = T.CAR_WHITE;
-  }
+  // Project House is a complete freestanding building below the courtyard.
+  fillRect(ground, 22, 29, 0, 16, T.SIDEWALK);
+  buildFacade(1, 15, [22, 25], 26, 27, T.BEIGE_ROOF, T.BEIGE_WINDOWS, T.BEIGE_BRICKS);
+  patternedRow(objects, 28, 1, 15, T.BEIGE_BRICKS);
+  patternedRow(objects, 28, 3, 6, T.GREEN_AWNING);
+  objects[28][10] = T.GLASS_DOOR_LEFT;
+  objects[28][11] = T.GLASS_DOOR_RIGHT;
+  decor[23][13] = T.ROOF_VENT;
+  decor[24][3] = T.ROOF_UNIT;
 
-  // ---- Trees in park ----
-  const parkTrees = [
-    [12, 2], [12, 6], [12, 14], [12, 16],
-    [13, 4], [13, 13],
-    [14, 2], [14, 7], [14, 15],
-    [17, 2], [17, 6], [17, 14], [17, 16],
-    [18, 4], [18, 13],
-    [19, 2], [19, 7], [19, 15],
-  ];
-  parkTrees.forEach(([r, c]) => { objects[r][c] = T.TREE_ROUND; });
+  // The cafe has the same architectural depth plus a paved terrace in front.
+  fillRect(ground, 14, 29, 24, 39, T.SIDEWALK);
+  buildFacade(25, 38, [16, 20], 21, 22, T.RED_ROOF, T.RED_WINDOWS, T.RED_BRICKS);
+  patternedRow(objects, 23, 25, 38, T.RED_BRICKS);
+  patternedRow(objects, 23, 26, 29, T.GREEN_AWNING);
+  patternedRow(objects, 23, 33, 36, T.ORANGE_AWNING);
+  objects[23][30] = T.GLASS_DOOR_LEFT;
+  objects[23][31] = T.GLASS_DOOR_RIGHT;
+  decor[17][36] = T.ROOF_VENT;
+  decor[18][27] = T.ROOF_UNIT;
 
-  // Pine trees along edges
-  const pines = [
-    [0, 13], [0, 15], [0, 17], [0, 19], [0, 21],
-    [5, 20], [5, 22], [5, 24],
-  ];
-  pines.forEach(([r, c]) => { objects[r][c] = T.TREE_PINE; });
+  fillRect(ground, 24, 29, 24, 39, T.PLAZA);
+  [[26, 27], [26, 34], [28, 29], [28, 36]].forEach(([r, c]) => {
+    objects[r][c] = T.SIDE_TABLE;
+    objects[r][c - 1] = T.ARMCHAIR;
+    objects[r][c + 1] = T.ARMCHAIR;
+  });
+  objects[25][24] = T.STREET_LIGHT;
+  objects[25][39] = T.PLANT_DARK;
+  objects[29][24] = T.TRASH_CAN;
+  objects[29][39] = T.STREET_LIGHT_ALT;
 
-  // Large trees
-  objects[12][9] = T.TREE_LARGE;
-  objects[19][10] = T.TREE_LARGE;
-
-  // ---- Bushes along building edges ----
-  const bushes = [
-    [5, 1], [5, 2], [5, 3], [5, 7], [5, 8], [5, 9],
-    [5, 23], [5, 24], [5, 32], [5, 33], [5, 34],
-    [23, 26], [23, 27], [23, 33], [23, 34],
-  ];
-  bushes.forEach(([r, c]) => { objects[r][c] = T.BUSH_ROUND; });
-
-  // ---- Hedges along park boundary ----
-  for (let c = 1; c < 18; c++) {
-    objects[11][c] = (c === 9 || c === 10) ? 0 : T.HEDGE; // gap for path
-  }
-  for (let c = 1; c < 18; c++) {
-    objects[20][c] = (c === 9 || c === 10) ? 0 : T.HEDGE;
-  }
-
-  // ---- Street lamps along roads ----
-  const lamps = [
-    [6, 3], [6, 10], [6, 16], [6, 25], [6, 32], [6, 38],
-    [11, 3], [11, 10], [11, 25], [11, 32], [11, 38],
-    [20, 3], [20, 10], [20, 25], [20, 32], [20, 38],
-    [25, 3], [25, 10], [25, 25], [25, 32], [25, 38],
-  ];
-  lamps.forEach(([r, c]) => { objects[r][c] = T.LAMP; });
-
-  // ---- Benches in park ----
-  const benches = [
-    [14, 9], [14, 10],
-    [16, 4], [16, 5],
-    [16, 14], [16, 15],
-    [18, 9], [18, 10],
-  ];
-  benches.forEach(([r, c]) => { objects[r][c] = T.BENCH; });
-
-  // ---- Trash cans ----
-  const trash = [
-    [6, 5], [11, 5], [15, 10], [20, 5], [25, 5],
-  ];
-  trash.forEach(([r, c]) => { objects[r][c] = T.TRASH; });
-
-  // ---- Cars on roads ----
-  objects[8][3] = T.CAR_YELLOW;
-  objects[8][8] = T.CAR_GREEN;
-  objects[9][30] = T.CAR_GRAY;
-  objects[9][35] = T.CAR_RED;
-
-  // ---- Indoor furniture (NW building interior) ----
-  // Override ground inside buildings that have doors
-  for (let r = 1; r < 4; r++)
-    for (let c = 1; c < 9; c++)
-      if (objects[r][c] === T.BLDG_WALL_DARK)
-        ground[r][c] = T.INDOOR_FLOOR;
-  // Tables and computers inside
-  objects[1][2] = T.DESK;
-  objects[1][3] = T.COMPUTER;
-  objects[1][6] = T.DESK;
-  objects[1][7] = T.COMPUTER;
-  objects[2][4] = T.TABLE_LIGHT;
-  objects[2][5] = T.CHAIR_LIGHT;
-  objects[3][2] = T.SHELF;
-  objects[3][7] = T.SHELF;
-
-  // NE building interior
-  for (let r = 1; r < 4; r++)
-    for (let c = 23; c < 34; c++)
-      if (objects[r][c] === T.BLDG_WALL_BLUE)
-        ground[r][c] = T.INDOOR_CARPET;
-  objects[1][25] = T.TABLE_DARK;
-  objects[1][26] = T.TABLE_DARK;
-  objects[1][30] = T.DESK;
-  objects[1][31] = T.COMPUTER;
-  objects[2][28] = T.CHAIR_DARK;
-  objects[3][25] = T.SHELF;
-  objects[3][32] = T.SHELF;
-
-  // ---- Flowers near buildings ----
-  const flowers = [
-    [5, 5], [5, 25], [23, 28], [23, 31],
-  ];
-  flowers.forEach(([r, c]) => { objects[r][c] = T.BUSH_FLOWER; });
-
-  // ---- Water feature in park ----
-  ground[15][14] = 12;
-  ground[15][15] = 13;
-  ground[16][14] = 13;
-  ground[16][15] = 14;
-
-  // ---- Fence around parking lot ----
-  for (let c = 24; c < 36; c++) {
-    objects[25][c] = T.FENCE;
-  }
-  objects[25][29] = 0; // gap to enter parking
-
-  // ---- Traffic light at intersection ----
-  objects[7][18] = T.TRAFFIC_LIGHT;
-  objects[7][21] = T.TRAFFIC_LIGHT;
-
-  // ---- Hydrants ----
-  objects[6][15] = T.HYDRANT;
-  objects[25][20] = T.HYDRANT;
-
-  // ---- Signs ----
-  objects[6][8] = T.SIGN;
-  objects[25][12] = T.SIGN;
-
-  return { ground, objects };
+  return { ground, decor, objects };
 }
 
-const { ground: GROUND, objects: OBJECTS } = buildMaps();
+const { ground: GROUND, decor: DECOR, objects: OBJECTS } = buildMaps();
 
 export default class RoomScene extends Phaser.Scene {
   selfSocketId: string | null;
@@ -459,6 +317,29 @@ export default class RoomScene extends Phaser.Scene {
       }
     }
 
+    // Layer 2: visual details that should not block player movement.
+    for (let r = 0; r < H; r++) {
+      for (let c = 0; c < W; c++) {
+        if (DECOR[r][c] === 0) continue;
+        this.add.image(c * D, r * D, 'tiles', DECOR[r][c])
+          .setOrigin(0, 0)
+          .setScale(SCALE)
+          .setDepth(1);
+      }
+    }
+
+    AREA_LABELS.forEach((label) => {
+      this.add
+        .text(label.column * D, label.row * D, label.text, {
+          fontFamily: 'monospace',
+          fontSize: '9px',
+          color: '#f8fafc',
+          backgroundColor: '#111827b8',
+          padding: { x: 6, y: 3 },
+        })
+        .setDepth(3);
+    });
+
     PRIVATE_ZONES.forEach((zone) => {
       const fill = this.add
         .rectangle(zone.x, zone.y, zone.width, zone.height, zone.color, 0.1)
@@ -477,7 +358,7 @@ export default class RoomScene extends Phaser.Scene {
         .setDepth(3);
     });
 
-    // Layer 2: Object tiles (collision bodies)
+    // Layer 3: walls and furniture with collision bodies.
     this.obstacles = this.physics.add.staticGroup();
     for (let r = 0; r < H; r++) {
       for (let c = 0; c < W; c++) {
