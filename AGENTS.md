@@ -110,6 +110,23 @@ MongoDB through Mongoose currently stores persistent user account data. Socket.I
 
 Do not assume in-memory realtime state is durable. If a new feature requires data to survive restarts, discuss and define its persistence approach before implementing it.
 
+## Phase Implementation and Documentation
+
+Implement each phase as a focused, usable, and manually testable increment, following the approach used for Phase 1.
+
+Each phase should have its own specification file inside `specs/`. After implementing a phase, update its specification to document:
+
+- what was implemented
+- how the feature currently works
+- how to test it manually
+- known limitations
+- production-related work intentionally deferred
+- future improvements or migration points
+
+Do not add production-scale complexity only to declare a phase complete. Clearly distinguish between an implemented learning-project milestone and a production-ready implementation.
+
+Do not describe deferred production requirements as implemented. Keep the relevant phase specification aligned with the actual codebase.
+
 ## Feature Implementation Rules
 
 When the user asks to build a feature:
