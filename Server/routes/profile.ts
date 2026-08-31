@@ -15,7 +15,11 @@ router.get("/", authenticateToken, async (req: Request, res: Response, next: Nex
 
     res.status(200).json({
       message: "Profile retrieved successfully",
-      user: { email: user.email }
+      user: {
+        id: user._id.toString(),
+        username: user.username,
+        email: user.email,
+      }
     });
   } catch (error) {
     const caughtError = error instanceof Error ? error : new Error("Unknown profile error");

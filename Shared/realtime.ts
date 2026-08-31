@@ -14,8 +14,13 @@ export interface RoomIdentity {
   displayName?: string | null;
 }
 
-export interface JoinRoomPayload extends RoomIdentity {
+export interface JoinRoomPayload {
   roomId: string;
+}
+
+export interface RoomAccessDeniedPayload {
+  roomId: string;
+  message: string;
 }
 
 export interface RoomStatePayload {
@@ -136,7 +141,6 @@ export interface IncomingCallEnd {
 
 export interface ChatMessagePayload {
   roomId: string;
-  username: string;
   message: string;
 }
 
@@ -148,7 +152,7 @@ export interface IncomingChatMessage {
 }
 
 export interface ClientToServerEvents {
-  "join-room": (payload: JoinRoomPayload | string) => void;
+  "join-room": (payload: JoinRoomPayload) => void;
   "leave-room": (roomId: string) => void;
   "request-room-state": (roomId: string) => void;
   "request-conversation-state": (roomId: string) => void;
@@ -166,6 +170,7 @@ export interface ClientToServerEvents {
 }
 
 export interface ServerToClientEvents {
+  "room-access-denied": (payload: RoomAccessDeniedPayload) => void;
   "room-state": (payload: RoomStatePayload) => void;
   "player-moved": (payload: PlayerMovedPayload) => void;
   "conversation-state": (payload: ConversationStatePayload) => void;

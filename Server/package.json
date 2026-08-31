@@ -7,6 +7,8 @@
     "start": "node dist/Server/index.js",
     "test": "jest tests/socketHandler.test.ts --runInBand",
     "test:socket": "jest tests/socketHandler.test.ts --runInBand",
+    "test:auth": "jest tests/auth.test.ts --runInBand",
+    "test:offices": "jest tests/offices.test.ts --runInBand",
     "test:integration": "jest tests/index.test.ts --runInBand",
     "dev": "tsx watch index.ts",
     "build": "tsc",

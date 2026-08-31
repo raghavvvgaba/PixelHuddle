@@ -1,4 +1,5 @@
 import type { Server, Socket } from "socket.io";
+import mongoose from "mongoose";
 import type {
   CallReason,
   ClientToServerEvents,
@@ -10,6 +11,8 @@ import type {
   ServerToClientEvents,
   SocketData,
 } from "../../Shared/realtime";
+import Membership from "../models/Membership";
+import Office from "../models/Office";
 import {
   MAX_SPATIAL_PEERS,
   PRIVATE_ZONES,
@@ -30,8 +33,6 @@ interface ZoneLock {
 
 interface NormalizedJoinPayload {
   roomId: string;
-  displayName: string;
-  userId: string | null;
 }
 
 type ConversationPeerMap = Map<string, Set<string>>;
@@ -52,15 +53,30 @@ const sanitizeDisplayName = (displayName: unknown) => {
 
 const normalizeJoinPayload = (payload: JoinRoomPayload | string): NormalizedJoinPayload => {
   if (typeof payload === "string") {
-    return { roomId: normalizeRoomId(payload), displayName: "Guest", userId: null };
+    return { roomId: normalizeRoomId(payload) };
   }
 
-  return {
-    roomId: normalizeRoomId(payload?.roomId),
-    displayName: sanitizeDisplayName(payload?.displayName),
-    userId:
-      typeof payload?.userId === "string" ? payload.userId.trim().slice(0, 80) : null,
-  };
+  return { roomId: normalizeRoomId(payload?.roomId) };
+};
+
+const getAuthorizedRoomId = (socket: AppSocket, claimedRoomId?: string | null) => {
+  const authorizedRoomId = normalizeRoomId(socket.data.roomId);
+  const normalizedClaim = normalizeRoomId(claimedRoomId);
+
+  if (!authorizedRoomId) return "";
+  if (normalizedClaim && normalizedClaim !== authorizedRoomId) return "";
+  return authorizedRoomId;
+};
+
+const canJoinOffice = async (officeId: string, userId: string) => {
+  if (!mongoose.isObjectIdOrHexString(officeId)) return false;
+
+  const [office, membership] = await Promise.all([
+    Office.exists({ _id: officeId }),
+    Membership.exists({ officeId, userId }),
+  ]);
+
+  return Boolean(office && membership);
 };
 
 const getDistance = (firstPlayer: Player, secondPlayer: Player) =>
@@ -356,7 +372,7 @@ const validateCallParticipants = (
   roomId: string | null | undefined,
   targetSocketId: string,
 ) => {
-  const normalizedRoomId = normalizeRoomId(roomId || socket.data.roomId);
+  const normalizedRoomId = getAuthorizedRoomId(socket, roomId);
   const targetSocket = getSocketById(io, targetSocketId);
 
   if (!normalizedRoomId || !targetSocket || targetSocket.id === socket.id) {
@@ -380,8 +396,27 @@ const socketHandler = (io: AppServer) => {
 
     // Handle user joining a room
     socket.on('join-room', async (payload) => {
-      const { roomId: normalizedRoomId, displayName, userId } = normalizeJoinPayload(payload);
+      const { roomId: normalizedRoomId } = normalizeJoinPayload(payload);
       if (!normalizedRoomId) return;
+      if (!socket.data.userId || !socket.data.displayName) return;
+
+      try {
+        const isMember = await canJoinOffice(normalizedRoomId, socket.data.userId);
+        if (!isMember) {
+          socket.emit("room-access-denied", {
+            roomId: normalizedRoomId,
+            message: "This office does not exist or you are not a member.",
+          });
+          return;
+        }
+      } catch (error) {
+        console.error("[ROOM] Office membership check failed", error);
+        socket.emit("room-access-denied", {
+          roomId: normalizedRoomId,
+          message: "Office access could not be verified. Please try again.",
+        });
+        return;
+      }
 
       if (socket.data.roomId && socket.data.roomId !== normalizedRoomId) {
         cleanupCallState(io, socket, "quit-room");
@@ -394,8 +429,8 @@ const socketHandler = (io: AppServer) => {
 
       const player = {
         socketId: socket.id,
-        userId: userId || `guest:${socket.id}`,
-        displayName,
+        userId: socket.data.userId,
+        displayName: sanitizeDisplayName(socket.data.displayName),
         x: spawnPoint.x,
         y: spawnPoint.y,
         flipX: false,
@@ -415,22 +450,22 @@ const socketHandler = (io: AppServer) => {
     });
 
     socket.on("request-room-state", (roomId) => {
-      const normalizedRoomId = normalizeRoomId(roomId || socket.data.roomId);
-      if (!normalizedRoomId || socket.data.roomId !== normalizedRoomId) return;
+      const normalizedRoomId = getAuthorizedRoomId(socket, roomId);
+      if (!normalizedRoomId) return;
       if (!roomPlayers.has(normalizedRoomId)) return;
 
       emitRoomStateToSocket(socket, normalizedRoomId);
     });
 
     socket.on("request-conversation-state", (roomId) => {
-      const normalizedRoomId = normalizeRoomId(roomId || socket.data.roomId);
-      if (!normalizedRoomId || socket.data.roomId !== normalizedRoomId) return;
+      const normalizedRoomId = getAuthorizedRoomId(socket, roomId);
+      if (!normalizedRoomId) return;
       recalculateConversations(io, normalizedRoomId);
     });
 
     // Handle user leaving a room
     socket.on('leave-room', (roomId) => {
-      const normalizedRoomId = normalizeRoomId(roomId || socket.data.roomId);
+      const normalizedRoomId = getAuthorizedRoomId(socket, roomId);
       if (!normalizedRoomId) return;
 
       cleanupCallState(io, socket, "quit-room");
@@ -443,7 +478,7 @@ const socketHandler = (io: AppServer) => {
     });
 
     socket.on("player-move", (data) => {
-      const roomId = normalizeRoomId(data.roomId || socket.data.roomId);
+      const roomId = getAuthorizedRoomId(socket, data.roomId);
       if (!roomId || !roomPlayers.has(roomId)) return;
 
       const players = roomPlayers.get(roomId)!;
@@ -480,16 +515,18 @@ const socketHandler = (io: AppServer) => {
     });
 
     socket.on("set-deafened", ({ roomId, deafened }) => {
-      const normalizedRoomId = normalizeRoomId(roomId || socket.data.roomId);
+      const normalizedRoomId = getAuthorizedRoomId(socket, roomId);
+      if (!normalizedRoomId) return;
       const player = roomPlayers.get(normalizedRoomId)?.get(socket.id);
-      if (!player || socket.data.roomId !== normalizedRoomId) return;
+      if (!player) return;
 
       player.deafened = Boolean(deafened);
       recalculateConversations(io, normalizedRoomId);
     });
 
     socket.on("set-zone-lock", ({ roomId, zoneId, locked }) => {
-      const normalizedRoomId = normalizeRoomId(roomId || socket.data.roomId);
+      const normalizedRoomId = getAuthorizedRoomId(socket, roomId);
+      if (!normalizedRoomId) return;
       const players = roomPlayers.get(normalizedRoomId);
       const player = players?.get(socket.id);
       const zone = PRIVATE_ZONES.find((candidate) => candidate.id === zoneId);
@@ -706,15 +743,18 @@ const socketHandler = (io: AppServer) => {
       });
     });
 
-    socket.on("call-end", ({ targetSocketId, reason }) => {
+    socket.on("call-end", ({ roomId, reason }) => {
+      const normalizedRoomId = getAuthorizedRoomId(socket, roomId);
+      if (!normalizedRoomId) return;
+
       const peerSocketIds = new Set<string>(
-        [targetSocketId, socket.data.activeCallPeerId, socket.data.pendingIncomingCallerId, socket.data.pendingOutgoingTargetId]
+        [socket.data.activeCallPeerId, socket.data.pendingIncomingCallerId, socket.data.pendingOutgoingTargetId]
           .filter((id): id is string => Boolean(id))
       );
 
       peerSocketIds.forEach((peerSocketId) => {
         const peerSocket = getSocketById(io, peerSocketId);
-        if (!peerSocket) return;
+        if (!peerSocket || getAuthorizedRoomId(peerSocket, normalizedRoomId) !== normalizedRoomId) return;
 
         resetPeerRelationship(peerSocket, socket.id);
         notifyPeerCallEnded(peerSocket, socket, reason || "hangup");
@@ -725,12 +765,13 @@ const socketHandler = (io: AppServer) => {
 
     // Handle chat messages
     socket.on('chat-message', (data) => {
-      const { roomId, message, username } = data;
-      
-      // Broadcast message to all users in the room
+      const roomId = getAuthorizedRoomId(socket, data.roomId);
+      const message = typeof data.message === "string" ? data.message.trim().slice(0, 500) : "";
+      if (!roomId || !message) return;
+
       io.to(roomId).emit('chat-message', {
-        userId: socket.id,
-        username,
+        userId: socket.data.userId || socket.id,
+        username: socket.data.displayName || "Member",
         message,
         timestamp: new Date().toISOString()
       });
@@ -757,6 +798,8 @@ export const __testing = {
   normalizeRoomId,
   resetPeerRelationship,
   validateCallParticipants,
+  canJoinOffice,
+  getAuthorizedRoomId,
   areSpatialPeers,
   buildConversationPeerMap,
   getConversationStatePayload,

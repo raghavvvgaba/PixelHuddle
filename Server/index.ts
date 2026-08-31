@@ -17,6 +17,7 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { noSQLInjectionProtection, inputSanitization } from './middleware/security';
 import { generalLimiter } from './middleware/rateLimiter';
 import socketHandler from './socket/socketHandler';
+import authenticateSocket from './socket/authenticateSocket';
 
 const app = express();
 const server = http.createServer(app);
@@ -69,9 +70,6 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEve
   },
 });
 
-// Database connection
-connectDB();
-
 // Middleware
 app.set("trust proxy", 1);
 app.use(cors({
@@ -99,9 +97,17 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 // Socket.io
+io.use(authenticateSocket);
 socketHandler(io);
 
 const PORT = Number(process.env.PORT) || 4000;
-server.listen(PORT, "0.0.0.0", () => {
-  console.log(`[SERVER] Server running on port ${PORT} (0.0.0.0)`);
-});
+
+const startServer = async () => {
+  await connectDB();
+
+  server.listen(PORT, "0.0.0.0", () => {
+    console.log(`[SERVER] Server running on port ${PORT} (0.0.0.0)`);
+  });
+};
+
+void startServer();

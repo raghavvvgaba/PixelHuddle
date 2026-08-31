@@ -4,7 +4,7 @@ import type {
   Player,
   PlayerMovePayload,
   PlayerMovedPayload,
-  RoomIdentity,
+  RoomAccessDeniedPayload,
   RoomStatePayload,
 } from "../../../Shared/realtime";
 
@@ -12,11 +12,11 @@ type RemoteMoveListener = (move: PlayerMovedPayload) => void;
 
 export default function useRoomPresence(
   roomId: string | undefined,
-  identity: Required<RoomIdentity>,
 ) {
   const [selfSocketId, setSelfSocketId] = useState(socket.id || null);
   const [participants, setParticipants] = useState<Player[]>([]);
   const [roomRevision, setRoomRevision] = useState(-1);
+  const [accessError, setAccessError] = useState("");
 
   const latestRoomRevisionRef = useRef(-1);
   const leftRoomRef = useRef(false);
@@ -26,13 +26,10 @@ export default function useRoomPresence(
     if (!targetRoomId) return;
 
     leftRoomRef.current = false;
-    socket.emit("join-room", {
-      roomId: targetRoomId,
-      userId: identity?.userId,
-      displayName: identity?.displayName,
-    });
+    setAccessError("");
+    socket.emit("join-room", { roomId: targetRoomId });
     socket.emit("request-room-state", targetRoomId);
-  }, [identity?.displayName, identity?.userId]);
+  }, []);
 
   const emitLeave = (targetRoomId?: string) => {
     if (!targetRoomId || leftRoomRef.current) return;
@@ -65,11 +62,18 @@ export default function useRoomPresence(
       if (incomingRoomId !== roomId) return;
       if (revision < latestRoomRevisionRef.current) return;
 
+      setAccessError("");
       latestRoomRevisionRef.current = revision;
       leftRoomRef.current = false;
       setSelfSocketId(socket.id || null);
       setRoomRevision(revision);
       setParticipants(players);
+    };
+
+    const handleAccessDenied = ({ roomId: deniedRoomId, message }: RoomAccessDeniedPayload) => {
+      if (deniedRoomId !== roomId) return;
+      setAccessError(message || "You no longer have access to this office.");
+      setParticipants([]);
     };
 
     const handlePlayerMoved = (move: PlayerMovedPayload) => {
@@ -80,6 +84,7 @@ export default function useRoomPresence(
 
     socket.on("connect", handleConnect);
     socket.on("disconnect", handleDisconnect);
+    socket.on("room-access-denied", handleAccessDenied);
     socket.on("room-state", handleRoomState);
     socket.on("player-moved", handlePlayerMoved);
 
@@ -90,6 +95,7 @@ export default function useRoomPresence(
     return () => {
       socket.off("connect", handleConnect);
       socket.off("disconnect", handleDisconnect);
+      socket.off("room-access-denied", handleAccessDenied);
       socket.off("room-state", handleRoomState);
       socket.off("player-moved", handlePlayerMoved);
       emitLeave(roomId);
@@ -136,6 +142,7 @@ export default function useRoomPresence(
     selfSocketId,
     participants,
     roomRevision,
+    accessError,
     subscribeToRemoteMoves,
     emitLocalPlayerMove,
     leaveRoom,

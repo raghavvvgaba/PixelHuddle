@@ -1,11 +1,15 @@
 import express from 'express';
 import authRoutes from './auth';
+import invitationRoutes from './invitations';
+import officeRoutes from './offices';
 import profileRoutes from './profile';
 
 const router = express.Router();
 
 // Mount routes
 router.use('/auth', authRoutes);
+router.use('/invitations', invitationRoutes);
+router.use('/offices', officeRoutes);
 router.use('/profile', profileRoutes);
 
 // Health check route

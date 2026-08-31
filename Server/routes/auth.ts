@@ -59,11 +59,11 @@ router.post("/signup",
         await newUser.save({ session });
 
         // Generate JWT token for automatic login
-        const token = generateToken(newUser._id, newUser.email);
+        const token = generateToken(newUser._id, newUser.username);
 
         return res.status(201).json({ 
           message: "Signup successful", 
-          user: { username: newUser.username, email: newUser.email },
+          user: { id: newUser._id.toString(), username: newUser.username, email: newUser.email },
           token: token,
           expiresIn: process.env.JWT_EXPIRES_IN
         });
@@ -111,11 +111,11 @@ router.post("/login",
       }
 
       // Generate JWT token
-      const token = generateToken(user._id, user.email);
+      const token = generateToken(user._id, user.username);
 
       return res.status(200).json({ 
         message: "Login successful", 
-        user: { username: user.username, email: user.email },
+        user: { id: user._id.toString(), username: user.username, email: user.email },
         token: token,
         expiresIn: process.env.JWT_EXPIRES_IN
       });

@@ -3,11 +3,13 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import './index.css'
 import App from './App'
 import Landing from "./pages/Landing"
-import Room from "./pages/Room"
+import Office from "./pages/Office"
+import Invitation from "./pages/Invitation"
 import Signup from "./pages/Signup"
 import Login from "./pages/Login"
 import Dashboard from "./pages/Dashboard"
 import NotFound from "./pages/NotFound"
+import ProtectedRoute from "./components/ProtectedRoute"
 import { ThemeProvider } from "./contexts/ThemeContext"
 
 const rootElement = document.getElementById('root')
@@ -24,8 +26,11 @@ createRoot(rootElement).render(
           <Route index element={<Landing />} />
           <Route path="signup" element={<Signup />} />
           <Route path="login" element={<Login />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="room/:roomId" element={<Room />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="offices/:officeSlug" element={<Office />} />
+            <Route path="invitations/:token" element={<Invitation />} />
+          </Route>
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

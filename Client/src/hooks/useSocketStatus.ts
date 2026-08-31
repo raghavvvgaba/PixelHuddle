@@ -37,8 +37,6 @@ export default function useSocketStatus() {
 
     if (socket.connected) {
       handleConnect();
-    } else if (!socket.active) {
-      socket.connect();
     }
 
     return () => {

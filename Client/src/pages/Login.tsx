@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { motion as Motion } from "framer-motion";
 import AuthShell from "../components/AuthShell";
 import { useAuth } from "../contexts/AuthContext";
@@ -9,7 +9,9 @@ const Login = () => {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
+  const returnPath = (location.state as { from?: string } | null)?.from || "/dashboard";
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -21,7 +23,7 @@ const Login = () => {
     const result = await login(form.username, form.password);
     
     if (result.success) {
-      navigate("/dashboard");
+      navigate(returnPath, { replace: true });
     } else {
       setError(result.error || "Login failed");
     }
@@ -98,7 +100,7 @@ const Login = () => {
           </Motion.button>
         </div>
 
-        <p className="text-xs text-theme-secondary text-center pt-2">Don't have an account? <Link to="/signup" className="text-accent-gradient hover:opacity-80">Create one</Link></p>
+        <p className="text-xs text-theme-secondary text-center pt-2">Don't have an account? <Link to="/signup" state={{ from: returnPath }} className="text-accent-gradient hover:opacity-80">Create one</Link></p>
       </Motion.form>
     </AuthShell>
   );

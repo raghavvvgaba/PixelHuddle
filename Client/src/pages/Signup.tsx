@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { motion as Motion } from "framer-motion";
 import AuthShell from "../components/AuthShell";
 import PasswordStrengthMeter from "../components/PasswordStrengthMeter";
@@ -11,7 +11,9 @@ const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [, setPasswordStrength] = useState(0);
   const navigate = useNavigate();
+  const location = useLocation();
   const { signup } = useAuth();
+  const returnPath = (location.state as { from?: string } | null)?.from || "/dashboard";
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -23,7 +25,7 @@ const Signup = () => {
     const result = await signup(form.username, form.email, form.password);
     
     if (result.success) {
-      navigate("/dashboard");
+      navigate(returnPath, { replace: true });
     } else {
       setError(result.error || "Signup failed");
     }
@@ -121,7 +123,7 @@ const Signup = () => {
           </Motion.button>
         </div>
 
-        <p className="text-xs text-theme-secondary text-center pt-2">Already have an account? <Link to="/login" className="text-accent-gradient hover:opacity-80">Sign in</Link></p>
+        <p className="text-xs text-theme-secondary text-center pt-2">Already have an account? <Link to="/login" state={{ from: returnPath }} className="text-accent-gradient hover:opacity-80">Sign in</Link></p>
       </Motion.form>
     </AuthShell>
   );

@@ -102,27 +102,22 @@ Turn temporary rooms into persistent, owned virtual offices that teams can retur
 
 ### Scope
 
-- Create persistent workspace, space, map, membership, role, and invitation records.
-- Give spaces stable, human-readable URLs or slugs.
-- Support owners, admins, members, and guests.
-- Add email or link-based invitations.
-- Enforce workspace membership in HTTP routes and socket connections.
-- Store space configuration and map selection.
-- Store a user's last valid position and preferred spawn location.
-- Add an office lobby with recent and joined workspaces.
-- Add member directories and basic participant search.
-- Add availability states such as available, busy, focused, and away.
-- Add presence indicators for microphone, camera, conversation, and meeting state.
-- Add locate, follow, or navigate-to-teammate actions.
-- Support assigned desks or personal home positions.
+- Create persistent office and membership records in MongoDB.
+- Give each office a stable, human-readable slug.
+- Let signed-in users create offices and see their joined offices on the dashboard.
+- Make the office creator its single admin and invited users regular members.
+- Let admins create copyable invitation links for new members.
+- Enforce office membership in HTTP routes and Socket.IO connections.
+- Reuse the existing map, default spawn, movement, and spatial-conversation experience.
 
 ### Completion criteria
 
-- A team can create and name an office, invite members, and control guest access.
-- The office and its configuration survive server restarts and deployments.
-- Users return to the correct office and an appropriate saved or assigned location.
-- Unauthorized users cannot read, enter, or subscribe to a private workspace.
-- Teammates can understand one another's location and availability at a glance.
+- A signed-in user can create and name an office.
+- The office appears on the admin's dashboard and survives server restarts.
+- The admin can invite another signed-in user through a copyable invitation link.
+- The invited user becomes a member and sees the office on their dashboard.
+- Admins and members can open the office through its stable slug.
+- Unauthorized users cannot read, enter, or subscribe to the office.
 
 ## Phase 3: Social and collaboration layer
 

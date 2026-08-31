@@ -6,8 +6,6 @@ import { FaUsers, FaSyncAlt, FaUserEdit, FaMobileAlt } from "react-icons/fa";
 import AuroraBackground from "../components/AuroraBackground";
 import AnimatedGrid from "../components/AnimatedGrid";
 import GlassCard from "../components/GlassCard";
-import useSocketStatus from "../hooks/useSocketStatus";
-import { generateRoomId } from "../utils/rooms";
 
 const features = [
   {
@@ -95,11 +93,6 @@ function GlowingParticles({ count = 90, className = "" }: { count?: number; clas
 
 const Landing = () => {
   const navigate = useNavigate();
-  const { isConnected } = useSocketStatus();
-  const handleQuickRoom = () => {
-    if (!isConnected) return;
-    navigate(`/room/${generateRoomId()}`);
-  };
 
   return (
     <div className="relative min-h-screen overflow-hidden w-full bg-theme-primary text-theme-primary">
@@ -127,7 +120,7 @@ const Landing = () => {
             transition={{ duration: 0.75, delay: .15, ease: 'easeOut' }}
             className="text-lg md:text-xl text-theme-secondary max-w-2xl mx-auto mb-10"
           >
-            Build meaningful interactions inside lightweight, expressive virtual rooms. Real-time movement, identity, and collaboration—accessible on any device.
+            Build meaningful interactions inside persistent virtual offices. Real-time movement, identity, and collaboration—accessible on any device.
           </Motion.p>
           <Motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -139,7 +132,7 @@ const Landing = () => {
               onClick={() => navigate('/dashboard')}
               className="btn-base btn-cta ring-pulse shadow-lg"
             >
-              Open Demo
+              Open dashboard
             </button>
           </Motion.div>
         </div>
@@ -170,17 +163,10 @@ const Landing = () => {
       {/* Secondary CTA */}
       <section className="relative py-20 content-wrapper">
         <GlassCard className="p-10 md:p-14 text-center">
-          <h3 className="text-2xl md:text-3xl font-bold mb-4">Ready to Build Your Space?</h3>
-            <p className="text-theme-secondary max-w-2xl mx-auto mb-8">Spin up a room, invite your team or friends, and explore movement, presence, and ambient collaboration in seconds.</p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button onClick={() => navigate('/dashboard')} className="btn-base btn-primary">Go To Rooms</button>
-              <button
-                onClick={handleQuickRoom}
-                disabled={!isConnected}
-                className="btn-base btn-outline glow-border disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Quick Room
-              </button>
+          <h3 className="text-2xl md:text-3xl font-bold mb-4">Ready to Build Your Office?</h3>
+            <p className="text-theme-secondary max-w-2xl mx-auto mb-8">Create a persistent office, invite your teammates, and explore movement, presence, and ambient collaboration together.</p>
+            <div className="flex justify-center">
+              <button onClick={() => navigate('/dashboard')} className="btn-base btn-primary">Go to offices</button>
             </div>
         </GlassCard>
       </section>

@@ -140,18 +140,15 @@ describe("spatial conversation helpers", () => {
     ...overrides,
   });
 
-  test("normalizes stable identity supplied during room join", () => {
+  test("normalizes the office id supplied during room join", () => {
     expect(
       normalizeJoinPayload({
         roomId: "  Demo-Room ",
-        userId: "guest-123",
-        displayName: "  Sunny    Otter  ",
       })
     ).toEqual({
       roomId: "demo-room",
-      userId: "guest-123",
-      displayName: "Sunny Otter",
     });
+    expect(sanitizeDisplayName("  Sunny    Otter  ")).toBe("Sunny Otter");
     expect(sanitizeDisplayName(" ")).toBe("Guest");
   });
 
