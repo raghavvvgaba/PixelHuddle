@@ -158,3 +158,7 @@ Before every feature implementation:
 - Follow the documented project boundaries.
 - Keep changes focused, simple, and teachable.
 - Ask before adding libraries or introducing major infrastructure.
+
+## Private reference
+
+Do not read, edit, reference, summarize, or include `architecture-decisions.md` unless I explicitly ask.
