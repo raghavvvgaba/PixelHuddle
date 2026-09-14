@@ -22,8 +22,10 @@ createRoot(rootElement).render(
   <ThemeProvider>
     <Router>
       <Routes>
-        <Route path="/" element={<App />}>
-          <Route index element={<Landing />} />
+        {/* Landing gets its own full-width shell — no sidebar */}
+        <Route path="/" element={<Landing />} />
+        {/* All inner pages use App layout (with AppSidebar) */}
+        <Route element={<App />}>
           <Route path="signup" element={<Signup />} />
           <Route path="login" element={<Login />} />
           <Route element={<ProtectedRoute />}>
