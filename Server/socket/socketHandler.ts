@@ -286,23 +286,23 @@ const emitJoinedRoomState = (socket: AppSocket, roomId: string) => {
   socket.to(roomId).emit("room-state", payload);
 };
 
-const removePlayerFromRoom = (io: AppServer, socket: AppSocket, roomId: string | null) => {
+const removePlayerFromRoom = (io: AppServer, socketId: string, roomId: string | null) => {
   if (!roomId || !roomPlayers.has(roomId)) return;
 
   const players = roomPlayers.get(roomId)!;
-  const removed = players.delete(socket.id);
+  const removed = players.delete(socketId);
 
   if (!removed) return;
 
   const locks = roomZoneLocks.get(roomId);
   locks?.forEach((lock, zoneId) => {
-    lock.memberIds.delete(socket.id);
-    if (lock.lockedBy === socket.id || lock.memberIds.size === 0) {
+    lock.memberIds.delete(socketId);
+    if (lock.lockedBy === socketId || lock.memberIds.size === 0) {
       locks.delete(zoneId);
     }
   });
 
-  socket.leave(roomId);
+  getSocketById(io, socketId)?.leave(roomId);
 
   if (players.size === 0) {
     roomPlayers.delete(roomId);
@@ -420,7 +420,24 @@ const socketHandler = (io: AppServer) => {
 
       if (socket.data.roomId && socket.data.roomId !== normalizedRoomId) {
         cleanupCallState(io, socket, "quit-room");
-        removePlayerFromRoom(io, socket, socket.data.roomId);
+        removePlayerFromRoom(io, socket.id, socket.data.roomId);
+      }
+
+      // A closed tab can remain connected until its heartbeat times out. Replace its
+      // presence as soon as the same account joins this office from a new tab.
+      for (const player of Array.from(roomPlayers.get(normalizedRoomId)?.values() || [])) {
+        if (player.userId !== socket.data.userId || player.socketId === socket.id) continue;
+
+        const previousSocket = getSocketById(io, player.socketId);
+        if (previousSocket) {
+          cleanupCallState(io, previousSocket, "quit-room");
+          previousSocket.data.roomId = null;
+          previousSocket.emit("room-access-denied", {
+            roomId: normalizedRoomId,
+            message: "This office was opened in another tab. Reload to join here instead.",
+          });
+        }
+        removePlayerFromRoom(io, player.socketId, normalizedRoomId);
       }
 
       const players = ensureRoom(normalizedRoomId);
@@ -469,7 +486,7 @@ const socketHandler = (io: AppServer) => {
       if (!normalizedRoomId) return;
 
       cleanupCallState(io, socket, "quit-room");
-      removePlayerFromRoom(io, socket, normalizedRoomId);
+      removePlayerFromRoom(io, socket.id, normalizedRoomId);
       if (socket.data.roomId === normalizedRoomId) {
         socket.data.roomId = null;
       }
@@ -780,7 +797,7 @@ const socketHandler = (io: AppServer) => {
     // Handle disconnection
     socket.on("disconnect", () => {
       cleanupCallState(io, socket, "disconnect");
-      removePlayerFromRoom(io, socket, socket.data.roomId);
+      removePlayerFromRoom(io, socket.id, socket.data.roomId);
 
       console.log(`[DISCONNECTED] ${socket.id} disconnected`);
     });

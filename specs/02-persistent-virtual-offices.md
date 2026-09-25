@@ -260,6 +260,7 @@ When the client opens an office:
 4. Only then does the server join the socket to the office room and accept movement, conversation, zone, and WebRTC events.
 
 The server uses the approved office ID stored on the socket for later events. A client-provided room ID is not treated as authorization.
+If the same account joins the same office in another tab, the server removes its previous avatar and room membership before adding the new one. The old tab receives an office-session message; only the newest tab remains active in that office. A closed tab without a replacement is removed when the server receives its disconnect or the Socket.IO heartbeat times out.
 
 ## Persistence boundary
 
@@ -304,6 +305,7 @@ Restarting the server preserves offices and memberships but resets live presence
 9. Confirm the member cannot create invitations.
 10. Confirm a third signed-in account without membership cannot read the office or join its Socket.IO room.
 11. Confirm a signed-out user cannot create, list, enter, or subscribe to offices.
+12. Close an office tab and immediately reopen that office with the same account. Confirm the room shows only one avatar for that account.
 
 ## Implementation slices
 

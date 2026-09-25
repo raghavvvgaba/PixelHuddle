@@ -1,4 +1,7 @@
-import { __testing, type AppServer, type AppSocket } from "../socket/socketHandler";
+import mongoose from "mongoose";
+import Membership from "../models/Membership";
+import Office from "../models/Office";
+import socketHandler, { __testing, type AppServer, type AppSocket } from "../socket/socketHandler";
 import type { Player, SocketData } from "../../Shared/realtime";
 import {
   MAX_SPATIAL_PEERS,
@@ -223,5 +226,60 @@ describe("spatial conversation helpers", () => {
     peers.forEach((peerIds: Set<string>) => {
       expect(peerIds.size).toBeLessThanOrEqual(MAX_SPATIAL_PEERS);
     });
+  });
+});
+
+describe("office presence", () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  test("a new tab replaces the previous avatar for the same account", async () => {
+    const roomId = new mongoose.Types.ObjectId().toString();
+    jest.spyOn(Office, "exists").mockResolvedValue({ _id: roomId } as never);
+    jest.spyOn(Membership, "exists").mockResolvedValue({ _id: "membership" } as never);
+
+    const sockets = new Map<string, AppSocket>();
+    let onConnection: ((socket: AppSocket) => void) | undefined;
+    const broadcasts: Array<{ eventName: string; payload: unknown }> = [];
+    const io = {
+      sockets: { sockets },
+      on: (_eventName: string, handler: (socket: AppSocket) => void) => { onConnection = handler; },
+      to: () => ({ emit: (eventName: string, payload: unknown) => broadcasts.push({ eventName, payload }) }),
+    } as unknown as AppServer;
+    socketHandler(io);
+
+    const makeSession = (id: string, userId = "same-user") => {
+      const handlers = new Map<string, (payload: { roomId: string }) => Promise<void>>();
+      const emitted: EmittedEvent[] = [];
+      const session = {
+        id,
+        data: { userId, displayName: "Alex", roomId: null },
+        on: (eventName: string, handler: (payload: { roomId: string }) => Promise<void>) => { handlers.set(eventName, handler); },
+        emit: (eventName: string, payload: unknown) => { emitted.push({ eventName, payload }); },
+        to: () => ({ emit: (eventName: string, payload: unknown) => broadcasts.push({ eventName, payload }) }),
+        join: async () => undefined,
+        leave: () => undefined,
+      } as unknown as AppSocket;
+      sockets.set(id, session);
+      onConnection?.(session);
+      return { session, handlers, emitted };
+    };
+
+    const observer = makeSession("observer", "other-user");
+    await observer.handlers.get("join-room")?.({ roomId });
+    const first = makeSession("first-tab");
+    await first.handlers.get("join-room")?.({ roomId });
+    const second = makeSession("second-tab");
+    await second.handlers.get("join-room")?.({ roomId });
+
+    const latestState = second.emitted.filter((event) => event.eventName === "room-state").at(-1);
+    expect(latestState?.payload).toMatchObject({
+      players: [
+        { socketId: "observer", userId: "other-user" },
+        { socketId: "second-tab", userId: "same-user" },
+      ],
+    });
+    expect(first.session.data.roomId).toBeNull();
+    expect(first.emitted).toContainEqual(expect.objectContaining({ eventName: "room-access-denied" }));
+    expect(broadcasts.filter((event) => event.eventName === "room-state").at(-1)?.payload).toEqual(latestState?.payload);
   });
 });
