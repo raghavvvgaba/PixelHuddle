@@ -180,12 +180,35 @@ describe("spatial conversation helpers", () => {
 
   test("isolates a private-zone occupant from people outside", () => {
     const players = new Map([
-      ["inside", createPlayer("inside", 80, 430)],
-      ["outside", createPlayer("outside", 80, 400)],
+      ["inside", createPlayer("inside", 4 * 32, 12.2 * 32)],
+      ["outside", createPlayer("outside", 4 * 32, 11.7 * 32)],
     ]);
 
     const peers = buildConversationPeerMap("room", players);
     expect(peers.get("inside")?.has("outside")).toBe(false);
+  });
+
+  test.each([
+    ["Focus Room", [1 * 32, 13 * 32], [8.3 * 32, 17 * 32]],
+    ["Boardroom", [10.6 * 32, 15 * 32], [18 * 32, 21 * 32]],
+  ])("connects occupants across the whole %s", (_room, first, second) => {
+    const players = new Map([
+      ["a", createPlayer("a", first[0]!, first[1]!)],
+      ["b", createPlayer("b", second[0]!, second[1]!)],
+    ]);
+
+    const peers = buildConversationPeerMap("room", players);
+    expect(peers.get("a")?.has("b")).toBe(true);
+    expect(peers.get("b")?.has("a")).toBe(true);
+  });
+
+  test("keeps a boardroom occupant separate from someone just outside its doorway", () => {
+    const players = new Map([
+      ["inside", createPlayer("inside", 14 * 32, 14.8 * 32)],
+      ["outside", createPlayer("outside", 14 * 32, 14.2 * 32)],
+    ]);
+
+    expect(buildConversationPeerMap("room", players).get("inside")?.has("outside")).toBe(false);
   });
 
   test("bounds the prototype mesh to three peers per participant", () => {

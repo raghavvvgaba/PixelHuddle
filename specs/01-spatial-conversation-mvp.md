@@ -13,6 +13,7 @@ The basic requirements of the Phase 1 MVP are complete. It is implemented as a b
 - Moving into a private area disconnects the user from people outside it and connects them to other authorized occupants.
 - A private-area occupant can lock the area. The people already inside remain members; newcomers are excluded until the owner unlocks it or leaves.
 - The conversation dock shows current peers, video, device state, private-area state, and media errors.
+- After devices are enabled, the local camera preview appears above the dock on the right, including before joining a conversation.
 - Users can mute their microphone, disable their camera, enter quiet mode, and share their screen.
 - Audio volume decreases with distance in public proximity conversations. Private-area audio remains at full volume.
 
@@ -52,6 +53,8 @@ Two private areas are currently defined in both the server and Phaser map config
 - Focus Room
 - Boardroom
 
+Each private area now covers the room interior up to its enclosing walls and doorway. Entering anywhere in the room joins its conversation automatically, including positions outside the former small highlighted rectangle. Occupants can connect across the room without meeting the public proximity radius. Leaving the room disconnects them from its conversation.
+
 The duplicated configuration is acceptable for this slice but must move to a shared, data-driven map schema during the persistent-space or map-tooling work.
 
 ## Environment
@@ -71,10 +74,11 @@ Public STUN defaults are provided. A real TURN service is required before cross-
 2. Open the same room in four separate browser profiles or devices.
 3. Confirm that all four names and moving avatars remain synchronized.
 4. Enable camera and microphone in each browser.
+   Confirm that each browser shows its own camera preview above the dock on the right.
 5. Walk two avatars together and confirm that media connects automatically.
 6. Bring the other two avatars into range and confirm that the group expands without a call dialog.
 7. Move one avatar beyond the exit radius and confirm that it disconnects without affecting the remaining group.
-8. Move two avatars into Focus Room and confirm that nearby outsiders cannot hear them.
+8. Move two avatars to opposite edges of Focus Room, then Boardroom, and confirm that they connect automatically throughout each room while nearby outsiders cannot hear them.
 9. Lock Focus Room, attempt to enter with another avatar, and confirm that the newcomer is excluded.
 10. Exercise mute, camera, quiet mode, and screen sharing.
 11. Refresh or close a participant and confirm that no ghost participant remains.

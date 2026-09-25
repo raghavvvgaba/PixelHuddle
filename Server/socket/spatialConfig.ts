@@ -9,18 +9,18 @@ const PRIVATE_ZONES = [
   {
     id: "focus-room",
     name: "Focus Room",
-    x: 2 * 32,
-    y: 13 * 32,
-    width: 6 * 32,
-    height: 3 * 32,
+    x: 0.45 * 32,
+    y: 11.8 * 32,
+    width: 8.35 * 32,
+    height: 5.85 * 32,
   },
   {
     id: "boardroom",
     name: "Boardroom",
-    x: 11 * 32,
-    y: 16 * 32,
-    width: 6 * 32,
-    height: 4 * 32,
+    x: 10.35 * 32,
+    y: 14.3 * 32,
+    width: 7.95 * 32,
+    height: 7.25 * 32,
   },
 ];
 

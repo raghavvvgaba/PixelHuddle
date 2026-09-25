@@ -153,7 +153,14 @@ export default function SpatialConversationDock({
         </div>
       ) : null}
 
-      <aside className="pointer-events-auto absolute bottom-4 right-4 w-[min(26rem,calc(100vw-2rem))] overflow-hidden rounded-[28px] border border-cyan-100/15 bg-[#071417]/92 shadow-[0_28px_90px_-32px_rgba(0,0,0,0.95)] backdrop-blur-2xl">
+      <div className="pointer-events-auto absolute bottom-4 right-4 flex w-[min(26rem,calc(100vw-2rem))] flex-col items-end gap-3">
+        {localStream ? (
+          <div className="w-28 overflow-hidden rounded-2xl border border-white/12 bg-[#071116] shadow-2xl">
+            <VideoTile stream={localStream} label="You" muted compact />
+          </div>
+        ) : null}
+
+        <aside className="w-full overflow-hidden rounded-[28px] border border-cyan-100/15 bg-[#071417]/92 shadow-[0_28px_90px_-32px_rgba(0,0,0,0.95)] backdrop-blur-2xl">
         <header className="border-b border-white/8 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_45%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.12),transparent_42%)] px-5 py-4">
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -250,13 +257,8 @@ export default function SpatialConversationDock({
             <FaDesktop />
           </ControlButton>
         </footer>
-      </aside>
-
-      {localStream && inConversation ? (
-        <div className="pointer-events-auto absolute bottom-4 left-4 w-28 overflow-hidden rounded-2xl border border-white/12 bg-[#071116] shadow-2xl">
-          <VideoTile stream={localStream} label="You" muted compact />
-        </div>
-      ) : null}
+        </aside>
+      </div>
     </div>
   );
 }
